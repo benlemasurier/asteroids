@@ -11,7 +11,7 @@ You'll need the 5.0 release of Allegro, availble here: http://alleg.sourceforge.
 
 then:
 
-    gcc asteroids.c -o asteroids $(pkg-config --cflags --libs allegro-5.0 allegro_image-5.0)
+    gcc -Wall -std=c99 -pedantic asteroids.c -o asteroids $(pkg-config --cflags --libs allegro-5.0 allegro_image-5.0)
 
 
 

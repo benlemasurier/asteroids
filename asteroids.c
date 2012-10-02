@@ -1,3 +1,13 @@
+/*
+ * asteroids
+ * an asteroids clone
+ *
+ * ben lemasurier 2k12
+ * https://github.com/benlemasurier/asteroids
+ *
+ */
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
