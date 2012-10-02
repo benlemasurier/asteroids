@@ -23,9 +23,10 @@ const float DRAG          = 0.98;
 const float ACCEL_SCALE   = 0.2;
 const float MISSILE_SPEED = 5;
 const float MISSILE_TTL   = 1.3;
+const int   MAX_MISSILES  = 4;
 
 enum CONTROLS {
-  KEY_UP, KEY_LEFT, KEY_RIGHT
+  KEY_UP, KEY_LEFT, KEY_RIGHT, KEY_SPACE
 };
 
 struct vector {
@@ -36,6 +37,8 @@ struct vector {
 struct ship {
   int width;
   int height;
+
+  struct missile **missiles;
 
   float angle;
   struct vector *position;
@@ -165,6 +168,31 @@ init(void)
   return true;
 }
 
+static struct missile *
+create_missile(struct ship *ship)
+{
+  struct missile *missile = malloc(sizeof(struct missile));
+  missile->position = malloc(sizeof(struct vector));
+  missile->velocity = malloc(sizeof(struct vector));
+
+  missile->sprite = al_load_bitmap("sprites/missile.png");
+  missile->width  = al_get_bitmap_width(missile->sprite);
+  missile->height = al_get_bitmap_height(missile->sprite);
+
+  if(!missile->sprite) {
+    free(missile->position);
+    free(missile->velocity);
+    free(missile);
+    fprintf(stderr, "failed to create missile sprite.\n");
+
+    return NULL;
+  }
+
+  missile->active = false;
+
+  return missile;
+}
+
 static bool
 create_ship(struct ship **ship)
 {
@@ -186,7 +214,69 @@ create_ship(struct ship **ship)
     return false;
   }
 
+  (*ship)->missiles = malloc(sizeof(struct missile) * MAX_MISSILES);
+
+  int i;
+  for(i = 0; i < MAX_MISSILES; i++)
+    (*ship)->missiles[i] = create_missile((*ship));
+
   return true;
+}
+
+static struct asteroid *
+create_asteroid(void)
+{
+  struct asteroid *asteroid = malloc(sizeof(struct asteroid));
+  asteroid->position = malloc(sizeof(struct vector));
+  asteroid->velocity = malloc(sizeof(struct vector));
+
+  /* what the fuck?
+   *
+   * rotated bitmaps are horribly pixelated
+   * this is a hack to get nice, clean sprites */
+  asteroid->angle  = rand_f(0.0, 360.0);
+  if(asteroid->angle < 90.0)
+    asteroid->sprite = al_load_bitmap("sprites/asteroid-big.png");
+  else if(asteroid->angle < 180.0)
+    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-90.png");
+  else if(asteroid->angle < 270.0)
+    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-180.png");
+  else if(asteroid->angle < 360.0)
+    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-270.png");
+
+  if(!asteroid->sprite) {
+    free(asteroid->position);
+    free(asteroid->velocity);
+    free(asteroid);
+    fprintf(stderr, "failed to create asteroid sprite.\n");
+
+    return NULL;
+  }
+
+  asteroid->width  = al_get_bitmap_width(asteroid->sprite);
+  asteroid->height = al_get_bitmap_height(asteroid->sprite);
+
+  asteroid->velocity->x = rand_f(0.3, 1.2);
+  asteroid->velocity->y = rand_f(0.3, 1.2);
+  asteroid->position->x = rand_f(1.0, SCREEN_W);
+  asteroid->position->y = rand_f(1.0, SCREEN_H);
+
+  return asteroid;
+}
+
+static void
+launch_missile(struct ship *ship, struct missile *missile)
+{
+  missile->active = true;
+
+  missile->angle  = ship->angle;
+
+  missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
+  missile->velocity->y = (float) -(cos(deg2rad(ship->angle))) * MISSILE_SPEED;
+  missile->position->x = ship->position->x;
+  missile->position->y = ship->position->y;
+
+  missile->time = al_get_timer_count(asteroids.timer);
 }
 
 static void
@@ -243,80 +333,6 @@ free_missile(struct missile *missile)
   missile = NULL;
 }
 
-static struct asteroid *
-create_asteroid(void)
-{
-  struct asteroid *asteroid = malloc(sizeof(struct asteroid));
-  asteroid->position = malloc(sizeof(struct vector));
-  asteroid->velocity = malloc(sizeof(struct vector));
-
-  /* what the fuck?
-   *
-   * rotated bitmaps are horribly pixelated
-   * this is a hack to get nice, clean sprites */
-  asteroid->angle  = rand_f(0.0, 360.0);
-  if(asteroid->angle < 90.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big.png");
-  else if(asteroid->angle < 180.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-90.png");
-  else if(asteroid->angle < 270.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-180.png");
-  else if(asteroid->angle < 360.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-270.png");
-
-  if(!asteroid->sprite) {
-    free(asteroid->position);
-    free(asteroid->velocity);
-    free(asteroid);
-    fprintf(stderr, "failed to create asteroid sprite.\n");
-
-    return NULL;
-  }
-
-  asteroid->width  = al_get_bitmap_width(asteroid->sprite);
-  asteroid->height = al_get_bitmap_height(asteroid->sprite);
-
-  asteroid->velocity->x = rand_f(0.3, 1.2);
-  asteroid->velocity->y = rand_f(0.3, 1.2);
-  asteroid->position->x = rand_f(1.0, SCREEN_W);
-  asteroid->position->y = rand_f(1.0, SCREEN_H);
-
-  return asteroid;
-}
-
-static struct missile *
-launch_missile(struct ship *ship)
-{
-  struct missile *missile = malloc(sizeof(struct missile));
-  missile->position = malloc(sizeof(struct vector));
-  missile->velocity = malloc(sizeof(struct vector));
-
-  missile->sprite = al_load_bitmap("sprites/missile.png");
-
-  if(!missile->sprite) {
-    free(missile->position);
-    free(missile->velocity);
-    free(missile);
-    fprintf(stderr, "failed to create missile sprite.\n");
-
-    return NULL;
-  }
-
-  missile->active = true;
-  missile->angle  = ship->angle;
-  missile->width  = al_get_bitmap_width(missile->sprite);
-  missile->height = al_get_bitmap_height(missile->sprite);
-
-  missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
-  missile->velocity->y = (float) -(cos(deg2rad(ship->angle))) * MISSILE_SPEED;
-  missile->position->x = ship->position->x;
-  missile->position->y = ship->position->y;
-
-  missile->time = al_get_timer_count(asteroids.timer);
-
-  return missile;
-}
-
 static void
 accelerate(struct ship *ship)
 {
@@ -370,7 +386,7 @@ main(int argc, char **argv)
   asteroids.timer       = NULL;
   asteroids.event_queue = NULL;
 
-  bool key[3] = { false, false, false };
+  bool key[4] = { false, false, false, false };
   bool redraw = true;
   bool quit   = false;
 
@@ -393,8 +409,6 @@ main(int argc, char **argv)
   al_flip_display();
   al_start_timer(asteroids.timer);
 
-  bool test = false;
-  struct missile *missile = NULL;
   while(!quit) {
     ALLEGRO_EVENT ev;
     al_wait_for_event(asteroids.event_queue, &ev);
@@ -410,6 +424,16 @@ main(int argc, char **argv)
       if(key[KEY_RIGHT])
         rotate_ship(asteroids.ship, 3);
 
+      // shoot
+      if(key[KEY_SPACE]) {
+        int i;
+        for(i = 0; i < MAX_MISSILES; i++) {
+          if(!asteroids.ship->missiles[i]->active) {
+            launch_missile(asteroids.ship, asteroids.ship->missiles[i]);
+          }
+        }
+      }
+
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       switch(ev.keyboard.keycode) {
@@ -421,6 +445,9 @@ main(int argc, char **argv)
           break;
         case ALLEGRO_KEY_RIGHT:
           key[KEY_RIGHT] = true;
+          break;
+        case ALLEGRO_KEY_SPACE:
+          key[KEY_SPACE] = true;
           break;
       }
     } else if(ev.type == ALLEGRO_EVENT_KEY_UP) {
@@ -434,6 +461,9 @@ main(int argc, char **argv)
         case ALLEGRO_KEY_RIGHT:
           key[KEY_RIGHT] = false;
           break;
+        case ALLEGRO_KEY_SPACE:
+          key[KEY_SPACE] = false;
+          break;
         case ALLEGRO_KEY_ESCAPE:
           quit = true;
           break;
@@ -442,11 +472,6 @@ main(int argc, char **argv)
 
     if(redraw && al_is_event_queue_empty(asteroids.event_queue)) {
       redraw = false;
-
-      if(!test) {
-        missile = launch_missile(asteroids.ship);
-        test = true;
-      }
 
       asteroids.ship->position->x += asteroids.ship->velocity->x;
       asteroids.ship->position->y += asteroids.ship->velocity->y;
@@ -463,19 +488,20 @@ main(int argc, char **argv)
       draw_ship(asteroids.ship);
       draw_asteroid(asteroid);
 
-      // FIXME: unfuck.
-      if(missile != NULL) {
-        if(missile->active) {
-          if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(asteroids.timer)) {
-            missile->active = false;
+      int i;
+      for(i = 0; i < MAX_MISSILES; i++) {
+        if(asteroids.ship->missiles[i]->active) {
+          if((asteroids.ship->missiles[i]->time + (MISSILE_TTL * FPS)) < al_get_timer_count(asteroids.timer)) {
+            asteroids.ship->missiles[i]->active = false;
           } else {
-            missile->position->x += missile->velocity->x;
-            missile->position->y += missile->velocity->y;
-            wrap_position(missile->position);
+            asteroids.ship->missiles[i]->position->x += asteroids.ship->missiles[i]->velocity->x;
+            asteroids.ship->missiles[i]->position->y += asteroids.ship->missiles[i]->velocity->y;
+            wrap_position(asteroids.ship->missiles[i]->position);
 
-            draw_missile(missile);
+            draw_missile(asteroids.ship->missiles[i]);
           }
         }
+
       }
 
       al_flip_display();
@@ -492,7 +518,9 @@ main(int argc, char **argv)
   if(asteroids.display != NULL)
     al_destroy_display(asteroids.display);
 
-  free_missile(missile);
+  int i;
+  for(i = 0; i < MAX_MISSILES; i++)
+    free_missile(asteroids.ship->missiles[i]);
   free_asteroid(asteroid);
   free_ship(&asteroids.ship);
 
