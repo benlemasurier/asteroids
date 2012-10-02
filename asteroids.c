@@ -144,7 +144,7 @@ build_ship(struct ship *ship)
   ship->position.x = SCREEN_W / 2;
   ship->position.y = SCREEN_H / 2;
 
-  ship->sprite = al_load_bitmap("ship.png");
+  ship->sprite = al_load_bitmap("sprites/ship.png");
   if(!ship->sprite) {
     fprintf(stderr, "failed to create ship sprite.\n");
     return -1;
