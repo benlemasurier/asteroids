@@ -15,10 +15,11 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
-const float FPS          = 60;
-const int   SCREEN_W     = 800;
-const int   SCREEN_H     = 600;
-const int   BOUNCER_SIZE = 32;
+const float FPS         = 60;
+const int   SCREEN_W    = 800;
+const int   SCREEN_H    = 600;
+const float DRAG        = 0.98;
+const float ACCEL_SCALE = 0.2;
 
 enum CONTROLS {
   KEY_UP, KEY_LEFT, KEY_RIGHT
@@ -155,15 +156,15 @@ build_ship(struct ship *ship)
 static void
 accelerate(struct ship *ship)
 {
-  ship->velocity.x += (float)   sin(deg2rad(ship->angle))  * 0.2;
-  ship->velocity.y += (float) -(cos(deg2rad(ship->angle))) * 0.2;
+  ship->velocity.x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
+  ship->velocity.y += (float) -(cos(deg2rad(ship->angle))) * ACCEL_SCALE;
 }
 
 static void
 drag(struct ship *ship)
 {
-  ship->velocity.x *= 0.98;
-  ship->velocity.y *= 0.98;
+  ship->velocity.x *= DRAG;
+  ship->velocity.y *= DRAG;
 }
 
 static void
@@ -171,7 +172,7 @@ draw_ship(struct ship *ship)
 {
   al_draw_rotated_bitmap(
       ship->sprite,
-      ship->width / 2,
+      ship->width  / 2,
       ship->height / 2,
       ship->position.x,
       ship->position.y,
