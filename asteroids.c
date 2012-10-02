@@ -30,34 +30,29 @@ struct vector {
   float y;
 };
 
-struct asteroids {
-  ALLEGRO_DISPLAY     *display;
-  ALLEGRO_TIMER       *timer;
-  ALLEGRO_EVENT_QUEUE *event_queue;
-} asteroids;
-
 struct ship {
   int width;
   int height;
 
   float angle;
-  struct vector position;
-  struct vector velocity;
+  struct vector *position;
+  struct vector *velocity;
 
   ALLEGRO_BITMAP *sprite;
-} ship;
+};
+
+struct asteroids {
+  struct ship         *ship;
+  ALLEGRO_DISPLAY     *display;
+  ALLEGRO_TIMER       *timer;
+  ALLEGRO_EVENT_QUEUE *event_queue;
+} asteroids;
 
 static void
 shutdown()
 {
-  if(ship.sprite != NULL)
-    al_destroy_bitmap(ship.sprite);
-  if(asteroids.display != NULL)
-    al_destroy_display(asteroids.display);
-  if(asteroids.timer != NULL)
-    al_destroy_timer(asteroids.timer);
-  if(asteroids.event_queue != NULL)
-    al_destroy_event_queue(asteroids.event_queue);
+  // FIXME: why can't I cleanly access asteroids.timer,display,etc here?
+  printf("shutdown.\n");
 }
 
 void
@@ -133,38 +128,42 @@ init(void)
   return true;
 }
 
-static int
-build_ship(struct ship *ship)
+static bool
+create_ship(struct ship **ship)
 {
-  ship->width      = 16;
-  ship->height     = 25;
-  ship->angle      = 0.0;
-  ship->velocity.x = 0.0;
-  ship->velocity.y = 0.0;
-  ship->position.x = SCREEN_W / 2;
-  ship->position.y = SCREEN_H / 2;
+  *ship = malloc(sizeof(struct ship));
+  (*ship)->position = malloc(sizeof(struct vector));
+  (*ship)->velocity = malloc(sizeof(struct vector));
 
-  ship->sprite = al_load_bitmap("sprites/ship.png");
-  if(!ship->sprite) {
+  (*ship)->width       = 16;
+  (*ship)->height      = 25;
+  (*ship)->angle       = 0.0;
+  (*ship)->velocity->x = 0.0;
+  (*ship)->velocity->y = 0.0;
+  (*ship)->position->x = SCREEN_W / 2;
+  (*ship)->position->y = SCREEN_H / 2;
+
+  (*ship)->sprite = al_load_bitmap("sprites/ship.png");
+  if(!(*ship)->sprite) {
     fprintf(stderr, "failed to create ship sprite.\n");
-    return -1;
+    return false;
   }
 
-  return 0;
+  return true;
 }
 
 static void
 accelerate(struct ship *ship)
 {
-  ship->velocity.x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
-  ship->velocity.y += (float) -(cos(deg2rad(ship->angle))) * ACCEL_SCALE;
+  ship->velocity->x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
+  ship->velocity->y += (float) -(cos(deg2rad(ship->angle))) * ACCEL_SCALE;
 }
 
 static void
 drag(struct ship *ship)
 {
-  ship->velocity.x *= DRAG;
-  ship->velocity.y *= DRAG;
+  ship->velocity->x *= DRAG;
+  ship->velocity->y *= DRAG;
 }
 
 static void
@@ -174,8 +173,8 @@ draw_ship(struct ship *ship)
       ship->sprite,
       ship->width  / 2,
       ship->height / 2,
-      ship->position.x,
-      ship->position.y,
+      ship->position->x,
+      ship->position->y,
       deg2rad(ship->angle), 0);
 }
 
@@ -197,9 +196,8 @@ main(int argc, char **argv)
     exit(EXIT_FAILURE);
 
   // this spacecraft must be built
-  if(build_ship(&ship) != 0) {
+  if(!create_ship(&asteroids.ship))
     exit(EXIT_FAILURE);
-  }
 
   al_flip_display();
   al_start_timer(asteroids.timer);
@@ -211,13 +209,13 @@ main(int argc, char **argv)
     if(ev.type == ALLEGRO_EVENT_TIMER) {
       // move forward
       if(key[KEY_UP])
-        accelerate(&ship);
+        accelerate(asteroids.ship);
 
       // rotate
       if(key[KEY_LEFT])
-        rotate_ship(&ship, -3);
+        rotate_ship(asteroids.ship, -3);
       if(key[KEY_RIGHT])
-        rotate_ship(&ship, 3);
+        rotate_ship(asteroids.ship, 3);
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -252,25 +250,42 @@ main(int argc, char **argv)
     if(redraw && al_is_event_queue_empty(asteroids.event_queue)) {
       redraw = false;
 
-      ship.position.x += ship.velocity.x;
-      ship.position.y += ship.velocity.y;
+      asteroids.ship->position->x += asteroids.ship->velocity->x;
+      asteroids.ship->position->y += asteroids.ship->velocity->y;
 
       // screen wrap
-      wrap_position(&ship.position);
+      wrap_position(asteroids.ship->position);
 
       al_clear_to_color(al_map_rgb(0, 0, 0));
 
-      draw_ship(&ship);
+      draw_ship(asteroids.ship);
       al_flip_display();
 
       // slow down over time
-      drag(&ship);
+      drag(asteroids.ship);
 
       // debugging
       printf("ship = { x: %f, y: %f, angle: %f }\n",
-          ship.position.x, ship.position.y, ship.angle);
+          asteroids.ship->position->x, asteroids.ship->position->y, asteroids.ship->angle);
     }
   }
+
+  if(asteroids.timer != NULL)
+    al_destroy_timer(asteroids.timer);
+  if(asteroids.event_queue != NULL)
+    al_destroy_event_queue(asteroids.event_queue);
+  if(asteroids.display != NULL)
+    al_destroy_display(asteroids.display);
+
+  if(asteroids.ship->position != NULL)
+    free(asteroids.ship->position);
+  if(asteroids.ship->velocity != NULL)
+    free(asteroids.ship->velocity);
+
+  if(asteroids.ship->sprite != NULL)
+    al_destroy_bitmap(asteroids.ship->sprite);
+  if(asteroids.ship != NULL)
+    free(asteroids.ship);
 
   exit(EXIT_SUCCESS);
 }
