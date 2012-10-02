@@ -89,48 +89,47 @@ deg2rad(float deg)
   return deg * (M_PI / 180);
 }
 
-static int
+static bool
 init(void)
 {
   if(!al_init()) {
     fprintf(stderr, "failed to initialize allegro.\n");
-    return EXIT_FAILURE;
+    return false;
   }
 
   if(!al_install_keyboard()) {
     fprintf(stderr, "failed to initialize keyboard.\n");
-    return EXIT_FAILURE;
+    return false;
   }
 
   if(!al_init_image_addon()) {
     fprintf(stderr, "failed to initialize image system.\n");
-    return EXIT_FAILURE;
+    return false;
   }
 
   asteroids.timer = al_create_timer(1.0 / FPS);
   if(!asteroids.timer) {
     fprintf(stderr, "failed to create timer.\n");
-    return EXIT_FAILURE;
+    return false;
   }
 
   asteroids.display = al_create_display(SCREEN_W, SCREEN_H);
   if(!asteroids.display) {
     fprintf(stderr, "failed to create display.\n");
-    return EXIT_FAILURE;
+    return false;
   }
 
   asteroids.event_queue = al_create_event_queue();
   if(!asteroids.event_queue) {
     fprintf(stderr, "failed to create event queue.\n");
-    shutdown();
-    return EXIT_FAILURE;
+    return false;
   }
 
   al_register_event_source(asteroids.event_queue, al_get_display_event_source(asteroids.display));
   al_register_event_source(asteroids.event_queue, al_get_timer_event_source(asteroids.timer));
   al_register_event_source(asteroids.event_queue, al_get_keyboard_event_source());
 
-  return 0;
+  return true;
 }
 
 static int
@@ -147,6 +146,7 @@ build_ship(struct ship *ship)
   ship->sprite = al_load_bitmap("ship.png");
   if(!ship->sprite) {
     fprintf(stderr, "failed to create ship sprite.\n");
+    return -1;
   }
 
   return 0;
@@ -189,14 +189,15 @@ main(int argc, char **argv)
   bool redraw = true;
   bool quit   = false;
 
+  atexit(shutdown);
+
   // setup allegro engine
-  if(init() != 0)
-    return EXIT_FAILURE;
+  if(!init())
+    exit(EXIT_FAILURE);
 
   // this spacecraft must be built
   if(build_ship(&ship) != 0) {
-    shutdown();
-    return EXIT_FAILURE;
+    exit(EXIT_FAILURE);
   }
 
   al_flip_display();
@@ -270,7 +271,5 @@ main(int argc, char **argv)
     }
   }
 
-  shutdown();
-
-  return EXIT_SUCCESS;
+  exit(EXIT_SUCCESS);
 }
