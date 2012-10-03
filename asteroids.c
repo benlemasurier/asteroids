@@ -51,6 +51,7 @@ struct level {
 struct ship {
   int width;
   int height;
+  bool thrust_visible;
 
   struct missile **missiles;
 
@@ -59,6 +60,7 @@ struct ship {
   struct vector *velocity;
 
   ALLEGRO_BITMAP *sprite;
+  ALLEGRO_BITMAP *thrust_sprite;
 };
 
 struct missile {
@@ -248,6 +250,12 @@ create_ship(struct ship **ship)
     return false;
   }
 
+  (*ship)->thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png");
+  if(!(*ship)->sprite) {
+    fprintf(stderr, "failed to create ship (thrust) sprite.\n");
+    return false;
+  }
+
   (*ship)->width       = al_get_bitmap_width((*ship)->sprite);
   (*ship)->height      = al_get_bitmap_height((*ship)->sprite);
   (*ship)->angle       = 0.0;
@@ -256,6 +264,7 @@ create_ship(struct ship **ship)
   (*ship)->position->x = SCREEN_W / 2;
   (*ship)->position->y = SCREEN_H / 2;
   (*ship)->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
+  (*ship)->thrust_visible = false;
 
   int i;
   for(i = 0; i < MAX_MISSILES; i++)
@@ -401,15 +410,27 @@ drag(struct ship *ship)
 }
 
 static void
-draw_ship(struct ship *ship)
+draw_ship(struct ship *ship, bool thrusting)
 {
-  al_draw_rotated_bitmap(
-      ship->sprite,
-      ship->width  / 2,
-      ship->height / 2,
-      ship->position->x,
-      ship->position->y,
-      deg2rad(ship->angle), 0);
+  if(thrusting && !ship->thrust_visible) {
+    al_draw_rotated_bitmap(
+        ship->thrust_sprite,
+        ship->width  / 2,
+        ship->height / 2,
+        ship->position->x,
+        ship->position->y,
+        deg2rad(ship->angle), 0);
+    ship->thrust_visible = true;
+  } else {
+    al_draw_rotated_bitmap(
+        ship->sprite,
+        ship->width  / 2,
+        ship->height / 2,
+        ship->position->x,
+        ship->position->y,
+        deg2rad(ship->angle), 0);
+    ship->thrust_visible = false;
+  }
 }
 
 static void
@@ -619,7 +640,11 @@ main(int argc, char **argv)
 
       al_clear_to_color(al_map_rgb(0, 0, 0));
 
-      draw_ship(asteroids.ship);
+      if(key[KEY_UP])
+        draw_ship(asteroids.ship, true);
+      else
+        draw_ship(asteroids.ship, false);
+
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         draw_asteroid(asteroids.level->asteroids[i]);
       draw_score();
