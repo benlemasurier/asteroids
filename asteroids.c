@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
@@ -29,7 +30,7 @@ const int   MAX_MISSILES  = 4;
 const int   START_LIVES   = 3;
 const int   LIVES_X       = 120;
 const int   LIVES_Y       = 60;
-const int   SCORE_X       = 120;
+const int   SCORE_X       = 110;
 const int   SCORE_Y       = 27;
 const int   HIGH_SCORE_Y  = 30;
 
@@ -40,6 +41,11 @@ enum CONTROLS {
 struct vector {
   float x;
   float y;
+};
+
+struct level {
+  int n_asteroids;
+  struct asteroid **asteroids;
 };
 
 struct ship {
@@ -84,7 +90,8 @@ struct asteroids {
   int     lives;
   unsigned long int   score;
   unsigned long int   high_score;
-  struct  ship        *ship;
+  struct ship         *ship;
+  struct level        *level;
 
   ALLEGRO_DISPLAY     *display;
   ALLEGRO_TIMER       *timer;
@@ -134,7 +141,9 @@ deg2rad(float deg)
 float
 rand_f(float low, float high)
 {
-  srand((unsigned) time(0));
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  srand(t.tv_usec * t.tv_sec);
   return low + (float) rand() / ((float) RAND_MAX / (high - low));
 }
 
@@ -288,12 +297,24 @@ create_asteroid(void)
   asteroid->width  = al_get_bitmap_width(asteroid->sprite);
   asteroid->height = al_get_bitmap_height(asteroid->sprite);
 
-  asteroid->velocity->x = rand_f(0.3, 1.2);
-  asteroid->velocity->y = rand_f(0.3, 1.2);
+  asteroid->velocity->x = (float)   sin(deg2rad(asteroid->angle))  * rand_f(0.1, 1.0);
+  asteroid->velocity->y = (float) -(cos(deg2rad(asteroid->angle))) * rand_f(0.1, 1.0);
   asteroid->position->x = rand_f(1.0, SCREEN_W);
   asteroid->position->y = rand_f(1.0, SCREEN_H);
 
   return asteroid;
+}
+
+static struct level *
+create_level(int n_asteroids) {
+  struct level *level = malloc(sizeof(struct level));
+
+  level->n_asteroids = n_asteroids;
+  level->asteroids = malloc(sizeof(struct asteroid *) * n_asteroids);
+  for(int i = 0; i < n_asteroids; i++)
+    level->asteroids[i] = create_asteroid();
+
+  return level;
 }
 
 static void
@@ -494,8 +515,6 @@ main(int argc, char **argv)
   bool quit     = false;
   bool debounce = false; /* fire debouce, force user to press for each fire */
 
-  struct asteroid *asteroid;
-
   atexit(shutdown);
 
   // setup allegro engine
@@ -506,9 +525,7 @@ main(int argc, char **argv)
   if(!create_ship(&asteroids.ship))
     exit(EXIT_FAILURE);
 
-  // create an asteroid
-  if((asteroid = create_asteroid()) == NULL)
-    exit(EXIT_FAILURE);
+  asteroids.level = create_level(4);
 
   al_flip_display();
   al_start_timer(asteroids.timer);
@@ -581,24 +598,30 @@ main(int argc, char **argv)
       redraw = false;
 
       /* collisions */
-      if(asteroid_collision(asteroids.ship, asteroid))
-        printf("ZOMG COLLISION!!!\n");
+      for(int i = 0; i < asteroids.level->n_asteroids; i++)
+        if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i]))
+          printf("ZOMG COLLISION!!!\n");
 
       /* update positions */
       asteroids.ship->position->x += asteroids.ship->velocity->x;
       asteroids.ship->position->y += asteroids.ship->velocity->y;
 
-      asteroid->position->x += asteroid->velocity->x;
-      asteroid->position->y += asteroid->velocity->y;
+      for(int i = 0; i < asteroids.level->n_asteroids; i++) {
+        struct asteroid *asteroid = asteroids.level->asteroids[i];
+        asteroid->position->x += asteroid->velocity->x;
+        asteroid->position->y += asteroid->velocity->y;
+      }
 
       // screen wrap
       wrap_position(asteroids.ship->position);
-      wrap_position(asteroid->position);
+      for(int i = 0; i < asteroids.level->n_asteroids; i++)
+        wrap_position(asteroids.level->asteroids[i]->position);
 
       al_clear_to_color(al_map_rgb(0, 0, 0));
 
       draw_ship(asteroids.ship);
-      draw_asteroid(asteroid);
+      for(int i = 0; i < asteroids.level->n_asteroids; i++)
+        draw_asteroid(asteroids.level->asteroids[i]);
       draw_score();
       draw_high_score();
       draw_lives();
@@ -633,10 +656,10 @@ main(int argc, char **argv)
   if(asteroids.display != NULL)
     al_destroy_display(asteroids.display);
 
-  int i;
-  for(i = 0; i < MAX_MISSILES; i++)
+  for(int i = 0; i < MAX_MISSILES; i++)
     free_missile(asteroids.ship->missiles[i]);
-  free_asteroid(asteroid);
+  for(int i = 0; i < asteroids.level->n_asteroids; i++)
+    free_asteroid(asteroids.level->asteroids[i]);
   free_ship(&asteroids.ship);
 
   exit(EXIT_SUCCESS);
