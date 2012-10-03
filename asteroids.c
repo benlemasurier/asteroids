@@ -379,6 +379,34 @@ draw_missile(struct missile *missile)
       0);
 }
 
+static bool
+collision(float b1_x, float b1_y, int b1_w, int b1_h,
+          float b2_x, float b2_y, int b2_w, int b2_h)
+{
+  if((b1_x > b2_x + b2_w - 1) || /* is b1 on the right side of b2? */
+     (b1_y > b2_y + b2_h - 1) || /* is b1 under b2?                */
+     (b2_x > b1_x + b1_w - 1) || /* is b2 on the right side of b1? */
+     (b2_y > b1_y + b1_h - 1))   /* is b2 under b1?                */
+  {
+    /* no collision */
+    return false;
+  }
+
+  return true;
+}
+
+static bool
+asteroid_collision(struct ship *ship, struct asteroid *asteroid)
+{
+  float ship_x = ship->position->x - (ship->width  / 2);
+  float ship_y = ship->position->y - (ship->height / 2);
+  float rock_x = asteroid->position->x - (asteroid->width  / 2);
+  float rock_y = asteroid->position->y - (asteroid->height / 2);
+
+  return collision(ship_x, ship_y, ship->width, ship->height,
+                   rock_x, rock_y, asteroid->width, asteroid->height);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -477,6 +505,11 @@ main(int argc, char **argv)
     if(redraw && al_is_event_queue_empty(asteroids.event_queue)) {
       redraw = false;
 
+      /* collisions */
+      if(asteroid_collision(asteroids.ship, asteroid))
+        printf("ZOMG COLLISION!!!\n");
+
+      /* update positions */
       asteroids.ship->position->x += asteroids.ship->velocity->x;
       asteroids.ship->position->y += asteroids.ship->velocity->y;
 
