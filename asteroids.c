@@ -21,8 +21,8 @@ const int   SCREEN_W      = 800;
 const int   SCREEN_H      = 600;
 const float DRAG          = 0.98;
 const float ACCEL_SCALE   = 0.2;
-const float MISSILE_SPEED = 5;
-const float MISSILE_TTL   = 1.3;
+const float MISSILE_SPEED = 8;
+const float MISSILE_TTL   = 1;
 const int   MAX_MISSILES  = 4;
 
 enum CONTROLS {
@@ -214,7 +214,7 @@ create_ship(struct ship **ship)
     return false;
   }
 
-  (*ship)->missiles = malloc(sizeof(struct missile) * MAX_MISSILES);
+  (*ship)->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
 
   int i;
   for(i = 0; i < MAX_MISSILES; i++)
@@ -386,9 +386,10 @@ main(int argc, char **argv)
   asteroids.timer       = NULL;
   asteroids.event_queue = NULL;
 
-  bool key[4] = { false, false, false, false };
-  bool redraw = true;
-  bool quit   = false;
+  bool key[4]   = { false, false, false, false };
+  bool redraw   = true;
+  bool quit     = false;
+  bool debounce = false; /* fire debouce, force user to press for each fire */
 
   struct asteroid *asteroid;
 
@@ -428,8 +429,10 @@ main(int argc, char **argv)
       if(key[KEY_SPACE]) {
         int i;
         for(i = 0; i < MAX_MISSILES; i++) {
-          if(!asteroids.ship->missiles[i]->active) {
+          if(!asteroids.ship->missiles[i]->active && !debounce) {
             launch_missile(asteroids.ship, asteroids.ship->missiles[i]);
+            debounce = true;
+            break;
           }
         }
       }
@@ -463,6 +466,7 @@ main(int argc, char **argv)
           break;
         case ALLEGRO_KEY_SPACE:
           key[KEY_SPACE] = false;
+          debounce = false;
           break;
         case ALLEGRO_KEY_ESCAPE:
           quit = true;
