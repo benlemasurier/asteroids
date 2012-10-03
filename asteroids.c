@@ -15,6 +15,8 @@
 #include <time.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 
 const float FPS           = 60;
 const int   SCREEN_W      = 800;
@@ -27,6 +29,7 @@ const int   MAX_MISSILES  = 4;
 const int   START_LIVES   = 3;
 const int   LIVES_X       = 50;
 const int   LIVES_Y       = 50;
+const int   HIGH_SCORE_Y  = 30;
 
 enum CONTROLS {
   KEY_UP, KEY_LEFT, KEY_RIGHT, KEY_SPACE
@@ -76,13 +79,15 @@ struct asteroid {
 };
 
 struct asteroids {
-  int lives;
-  struct ship         *ship;
+  int     lives;
+  unsigned long int   score;
+  struct  ship        *ship;
 
   ALLEGRO_DISPLAY     *display;
   ALLEGRO_TIMER       *timer;
   ALLEGRO_EVENT_QUEUE *event_queue;
   ALLEGRO_BITMAP      *lives_sprite;
+  ALLEGRO_FONT        *font;
 } asteroids;
 
 static void
@@ -147,8 +152,18 @@ init(void)
     return false;
   }
 
+  al_init_font_addon();
+
+  if(!al_init_ttf_addon()) {
+    fprintf(stderr, "failed to initialize ttf system.\n");
+    return false;
+  }
+
+  /* asteroids font */
+  asteroids.font = al_load_ttf_font("data/vectorb.ttf", 12, 0);
+
   /* lives sprite */
-  asteroids.lives_sprite = al_load_bitmap("sprites/ship.png");
+  asteroids.lives_sprite = al_load_bitmap("data/sprites/ship.png");
   if(!asteroids.lives_sprite) {
     fprintf(stderr, "failed to load lives sprite.\n");
     return false;
@@ -188,7 +203,7 @@ create_missile(struct ship *ship)
   missile->position = malloc(sizeof(struct vector));
   missile->velocity = malloc(sizeof(struct vector));
 
-  missile->sprite = al_load_bitmap("sprites/missile.png");
+  missile->sprite = al_load_bitmap("data/sprites/missile.png");
   missile->width  = al_get_bitmap_width(missile->sprite);
   missile->height = al_get_bitmap_height(missile->sprite);
 
@@ -213,7 +228,7 @@ create_ship(struct ship **ship)
   (*ship)->position = malloc(sizeof(struct vector));
   (*ship)->velocity = malloc(sizeof(struct vector));
 
-  (*ship)->sprite = al_load_bitmap("sprites/ship.png");
+  (*ship)->sprite = al_load_bitmap("data/sprites/ship.png");
   if(!(*ship)->sprite) {
     fprintf(stderr, "failed to create ship sprite.\n");
     return false;
@@ -248,13 +263,13 @@ create_asteroid(void)
    * this is a hack to get nice, clean sprites */
   asteroid->angle  = rand_f(0.0, 360.0);
   if(asteroid->angle < 90.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big.png");
+    asteroid->sprite = al_load_bitmap("data/sprites/asteroid-big.png");
   else if(asteroid->angle < 180.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-90.png");
+    asteroid->sprite = al_load_bitmap("data/sprites/asteroid-big-90.png");
   else if(asteroid->angle < 270.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-180.png");
+    asteroid->sprite = al_load_bitmap("data/sprites/asteroid-big-180.png");
   else if(asteroid->angle < 360.0)
-    asteroid->sprite = al_load_bitmap("sprites/asteroid-big-270.png");
+    asteroid->sprite = al_load_bitmap("data/sprites/asteroid-big-270.png");
 
   if(!asteroid->sprite) {
     free(asteroid->position);
@@ -392,6 +407,20 @@ draw_missile(struct missile *missile)
 }
 
 static void
+draw_high_score(void)
+{
+  char score[20];
+  sprintf(score, "%02lu", asteroids.score);
+
+  al_draw_text(asteroids.font,
+      al_map_rgb(255,255,255),
+      SCREEN_W / 2,
+      SCORE_Y,
+      ALLEGRO_ALIGN_CENTRE,
+      score);
+}
+
+static void
 draw_lives(void)
 {
   int width = al_get_bitmap_width(asteroids.lives_sprite);
@@ -435,6 +464,7 @@ asteroid_collision(struct ship *ship, struct asteroid *asteroid)
 int
 main(int argc, char **argv)
 {
+  asteroids.score       = 0;
   asteroids.lives       = START_LIVES;
   asteroids.display     = NULL;
   asteroids.timer       = NULL;
@@ -550,6 +580,7 @@ main(int argc, char **argv)
 
       draw_ship(asteroids.ship);
       draw_asteroid(asteroid);
+      draw_high_core();
       draw_lives();
 
       int i;
