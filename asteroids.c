@@ -24,6 +24,9 @@ const float ACCEL_SCALE   = 0.2;
 const float MISSILE_SPEED = 8;
 const float MISSILE_TTL   = 1;
 const int   MAX_MISSILES  = 4;
+const int   START_LIVES   = 3;
+const int   LIVES_X       = 50;
+const int   LIVES_Y       = 50;
 
 enum CONTROLS {
   KEY_UP, KEY_LEFT, KEY_RIGHT, KEY_SPACE
@@ -73,10 +76,13 @@ struct asteroid {
 };
 
 struct asteroids {
+  int lives;
   struct ship         *ship;
+
   ALLEGRO_DISPLAY     *display;
   ALLEGRO_TIMER       *timer;
   ALLEGRO_EVENT_QUEUE *event_queue;
+  ALLEGRO_BITMAP      *lives_sprite;
 } asteroids;
 
 static void
@@ -141,6 +147,13 @@ init(void)
     return false;
   }
 
+  /* lives sprite */
+  asteroids.lives_sprite = al_load_bitmap("sprites/ship.png");
+  if(!asteroids.lives_sprite) {
+    fprintf(stderr, "failed to load lives sprite.\n");
+    return false;
+  }
+
   asteroids.timer = al_create_timer(1.0 / FPS);
   if(!asteroids.timer) {
     fprintf(stderr, "failed to create timer.\n");
@@ -200,20 +213,19 @@ create_ship(struct ship **ship)
   (*ship)->position = malloc(sizeof(struct vector));
   (*ship)->velocity = malloc(sizeof(struct vector));
 
-  (*ship)->width       = 16;
-  (*ship)->height      = 25;
-  (*ship)->angle       = 0.0;
-  (*ship)->velocity->x = 0.0;
-  (*ship)->velocity->y = 0.0;
-  (*ship)->position->x = SCREEN_W / 2;
-  (*ship)->position->y = SCREEN_H / 2;
-
   (*ship)->sprite = al_load_bitmap("sprites/ship.png");
   if(!(*ship)->sprite) {
     fprintf(stderr, "failed to create ship sprite.\n");
     return false;
   }
 
+  (*ship)->width       = al_get_bitmap_width((*ship)->sprite);
+  (*ship)->height      = al_get_bitmap_height((*ship)->sprite);
+  (*ship)->angle       = 0.0;
+  (*ship)->velocity->x = 0.0;
+  (*ship)->velocity->y = 0.0;
+  (*ship)->position->x = SCREEN_W / 2;
+  (*ship)->position->y = SCREEN_H / 2;
   (*ship)->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
 
   int i;
@@ -379,6 +391,19 @@ draw_missile(struct missile *missile)
       0);
 }
 
+static void
+draw_lives(void)
+{
+  int width = al_get_bitmap_width(asteroids.lives_sprite);
+
+  for(int i = 0; i < asteroids.lives; i++)
+    al_draw_bitmap(
+        asteroids.lives_sprite,
+        LIVES_X + (width * i),
+        LIVES_Y,
+        0);
+}
+
 static bool
 collision(float b1_x, float b1_y, int b1_w, int b1_h,
           float b2_x, float b2_y, int b2_w, int b2_h)
@@ -410,6 +435,7 @@ asteroid_collision(struct ship *ship, struct asteroid *asteroid)
 int
 main(int argc, char **argv)
 {
+  asteroids.lives       = START_LIVES;
   asteroids.display     = NULL;
   asteroids.timer       = NULL;
   asteroids.event_queue = NULL;
@@ -524,6 +550,7 @@ main(int argc, char **argv)
 
       draw_ship(asteroids.ship);
       draw_asteroid(asteroid);
+      draw_lives();
 
       int i;
       for(i = 0; i < MAX_MISSILES; i++) {
