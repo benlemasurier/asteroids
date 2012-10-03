@@ -27,8 +27,10 @@ const float MISSILE_SPEED = 8;
 const float MISSILE_TTL   = 1;
 const int   MAX_MISSILES  = 4;
 const int   START_LIVES   = 3;
-const int   LIVES_X       = 50;
-const int   LIVES_Y       = 50;
+const int   LIVES_X       = 120;
+const int   LIVES_Y       = 60;
+const int   SCORE_X       = 120;
+const int   SCORE_Y       = 27;
 const int   HIGH_SCORE_Y  = 30;
 
 enum CONTROLS {
@@ -81,13 +83,15 @@ struct asteroid {
 struct asteroids {
   int     lives;
   unsigned long int   score;
+  unsigned long int   high_score;
   struct  ship        *ship;
 
   ALLEGRO_DISPLAY     *display;
   ALLEGRO_TIMER       *timer;
   ALLEGRO_EVENT_QUEUE *event_queue;
   ALLEGRO_BITMAP      *lives_sprite;
-  ALLEGRO_FONT        *font;
+  ALLEGRO_FONT        *small_font;
+  ALLEGRO_FONT        *large_font;
 } asteroids;
 
 static void
@@ -159,8 +163,9 @@ init(void)
     return false;
   }
 
-  /* asteroids font */
-  asteroids.font = al_load_ttf_font("data/vectorb.ttf", 12, 0);
+  /* fonts */
+  asteroids.small_font = al_load_ttf_font("data/vectorb.ttf", 12, 0);
+  asteroids.large_font = al_load_ttf_font("data/vectorb.ttf", 24, 0);
 
   /* lives sprite */
   asteroids.lives_sprite = al_load_bitmap("data/sprites/ship.png");
@@ -407,15 +412,29 @@ draw_missile(struct missile *missile)
 }
 
 static void
+draw_score(void)
+{
+  char score[20];
+  sprintf(score, "%03lu", asteroids.score);
+
+  al_draw_text(asteroids.large_font,
+      al_map_rgb(255,255,255),
+      SCORE_X,
+      SCORE_Y,
+      ALLEGRO_ALIGN_LEFT,
+      score);
+}
+
+static void
 draw_high_score(void)
 {
   char score[20];
-  sprintf(score, "%02lu", asteroids.score);
+  sprintf(score, "%02lu", asteroids.high_score);
 
-  al_draw_text(asteroids.font,
+  al_draw_text(asteroids.small_font,
       al_map_rgb(255,255,255),
       SCREEN_W / 2,
-      SCORE_Y,
+      HIGH_SCORE_Y,
       ALLEGRO_ALIGN_CENTRE,
       score);
 }
@@ -580,7 +599,8 @@ main(int argc, char **argv)
 
       draw_ship(asteroids.ship);
       draw_asteroid(asteroid);
-      draw_high_core();
+      draw_score();
+      draw_high_score();
       draw_lives();
 
       int i;
