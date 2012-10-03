@@ -22,13 +22,13 @@
 const float FPS           = 60;
 const int   SCREEN_W      = 800;
 const int   SCREEN_H      = 600;
-const float DRAG          = 0.98;
-const float ACCEL_SCALE   = 0.2;
+const float DRAG          = 0.99;
+const float ACCEL_SCALE   = 0.07;
 const float MISSILE_SPEED = 8;
 const float MISSILE_TTL   = 1;
 const int   MAX_MISSILES  = 4;
 const int   START_LIVES   = 3;
-const int   LIVES_X       = 120;
+const int   LIVES_X       = 100;
 const int   LIVES_Y       = 60;
 const int   SCORE_X       = 110;
 const int   SCORE_Y       = 27;
@@ -436,7 +436,7 @@ static void
 draw_score(void)
 {
   char score[20];
-  sprintf(score, "%03lu", asteroids.score);
+  sprintf(score, "%02lu", asteroids.score);
 
   al_draw_text(asteroids.large_font,
       al_map_rgb(255,255,255),
@@ -623,6 +623,7 @@ main(int argc, char **argv)
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         draw_asteroid(asteroids.level->asteroids[i]);
       draw_score();
+
       draw_high_score();
       draw_lives();
 
