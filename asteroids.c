@@ -48,6 +48,20 @@ struct level {
   struct asteroid **asteroids;
 };
 
+struct missile {
+  int width;
+  int height;
+  bool active;
+
+  float angle;
+  struct vector *position;
+  struct vector *velocity;
+
+  int64_t time;
+
+  ALLEGRO_BITMAP *sprite;
+};
+
 struct ship {
   int width;
   int height;
@@ -61,20 +75,6 @@ struct ship {
 
   ALLEGRO_BITMAP *sprite;
   ALLEGRO_BITMAP *thrust_sprite;
-};
-
-struct missile {
-  int width;
-  int height;
-  bool active;
-
-  float angle;
-  struct vector *position;
-  struct vector *velocity;
-
-  int64_t time;
-
-  ALLEGRO_BITMAP *sprite;
 };
 
 struct asteroid {
@@ -412,6 +412,8 @@ drag(struct ship *ship)
 static void
 draw_ship(struct ship *ship, bool thrusting)
 {
+  /* this creates a flashing thrust visualization
+   * not _exactly_ like the original (too fast). (FIXME) */
   if(thrusting && !ship->thrust_visible) {
     al_draw_rotated_bitmap(
         ship->thrust_sprite,
@@ -522,6 +524,18 @@ asteroid_collision(struct ship *ship, struct asteroid *asteroid)
                    rock_x, rock_y, asteroid->width, asteroid->height);
 }
 
+static bool
+missile_collision(struct missile *missile, struct asteroid *asteroid)
+{
+  float missile_x = missile->position->x - (missile->width   / 2);
+  float missile_y = missile->position->y - (missile->height  / 2);
+  float rock_x = asteroid->position->x   - (asteroid->width  / 2);
+  float rock_y = asteroid->position->y   - (asteroid->height / 2);
+
+  return collision(missile_x, missile_y, missile->width, missile->height,
+                   rock_x, rock_y, asteroid->width, asteroid->height);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -618,10 +632,17 @@ main(int argc, char **argv)
     if(redraw && al_is_event_queue_empty(asteroids.event_queue)) {
       redraw = false;
 
-      /* collisions */
+      /* ship->asteroid collisions */
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i]))
           printf("ZOMG COLLISION!!!\n");
+
+      /* missile->asteroid collisions */
+      for(int i = 0; i < MAX_MISSILES; i++)
+        if(asteroids.ship->missiles[i]->active)
+          for(int j = 0; j < asteroids.level->n_asteroids; j++)
+            if(missile_collision(asteroids.ship->missiles[i], asteroids.level->asteroids[j]))
+              printf("TARGET POSSIBLY ANNIHILATED!!!\n");
 
       /* update positions */
       asteroids.ship->position->x += asteroids.ship->velocity->x;
