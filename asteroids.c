@@ -58,12 +58,11 @@ typedef struct missile_t {
   int width;
   int height;
   bool active;
+  int64_t time;
 
   float angle;
   VECTOR *position;
   VECTOR *velocity;
-
-  int64_t time;
 
   ALLEGRO_BITMAP *sprite;
 } MISSILE;
@@ -86,47 +85,48 @@ struct ship {
 typedef struct asteroid_t {
   int width;
   int height;
+  float angle;
   uint8_t size;
   uint8_t points;
 
-  float angle;
   VECTOR *position;
   VECTOR *velocity;
 
   ALLEGRO_BITMAP *sprite;
 } ASTEROID;
 
-struct level {
+typedef struct level_t {
   int n_asteroids;
   ASTEROID **asteroids;
-};
+} LEVEL;
 
 struct asteroids {
-  int     lives;
   unsigned long int   score;
   unsigned long int   high_score;
-  struct ship         *ship;
-  struct level        *level;
 
-  ALLEGRO_DISPLAY     *display;
-  ALLEGRO_TIMER       *timer;
+  int lives;
+  struct ship  *ship;
+  LEVEL *level;
+
+  ALLEGRO_FONT    *small_font;
+  ALLEGRO_FONT    *large_font;
+  ALLEGRO_TIMER   *timer;
+  ALLEGRO_DISPLAY *display;
   ALLEGRO_EVENT_QUEUE *event_queue;
-  ALLEGRO_FONT        *small_font;
-  ALLEGRO_FONT        *large_font;
 
-  ALLEGRO_BITMAP      *lives_sprite;
-  ALLEGRO_BITMAP      *asteroid_large;
-  ALLEGRO_BITMAP      *asteroid_large_90;
-  ALLEGRO_BITMAP      *asteroid_large_180;
-  ALLEGRO_BITMAP      *asteroid_large_270;
-  ALLEGRO_BITMAP      *asteroid_medium;
-  ALLEGRO_BITMAP      *asteroid_medium_90;
-  ALLEGRO_BITMAP      *asteroid_medium_180;
-  ALLEGRO_BITMAP      *asteroid_medium_270;
-  ALLEGRO_BITMAP      *asteroid_small;
-  ALLEGRO_BITMAP      *asteroid_small_90;
-  ALLEGRO_BITMAP      *asteroid_small_180;
-  ALLEGRO_BITMAP      *asteroid_small_270;
+  ALLEGRO_BITMAP *lives_sprite;
+  ALLEGRO_BITMAP *asteroid_large;
+  ALLEGRO_BITMAP *asteroid_large_90;
+  ALLEGRO_BITMAP *asteroid_large_180;
+  ALLEGRO_BITMAP *asteroid_large_270;
+  ALLEGRO_BITMAP *asteroid_medium;
+  ALLEGRO_BITMAP *asteroid_medium_90;
+  ALLEGRO_BITMAP *asteroid_medium_180;
+  ALLEGRO_BITMAP *asteroid_medium_270;
+  ALLEGRO_BITMAP *asteroid_small;
+  ALLEGRO_BITMAP *asteroid_small_90;
+  ALLEGRO_BITMAP *asteroid_small_180;
+  ALLEGRO_BITMAP *asteroid_small_270;
 } asteroids;
 
 static void
@@ -448,7 +448,7 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
 {
   int i;
   VECTOR position;
-  struct level *level = asteroids.level;
+  LEVEL *level = asteroids.level;
 
   missile->active = false;
   asteroids.score += asteroid->points;
@@ -501,10 +501,10 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
   }
 }
 
-static struct level *
+static LEVEL *
 create_level(int n_asteroids)
 {
-  struct level *level = malloc(sizeof(struct level));
+  LEVEL *level = malloc(sizeof(LEVEL));
 
   level->n_asteroids = n_asteroids;
   level->asteroids = malloc(sizeof(ASTEROID *) * n_asteroids);
