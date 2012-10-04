@@ -176,18 +176,30 @@ static bool
 preload_asteroid_sprites(void)
 {
   /* FIXME: fugtf */
-  asteroids.asteroid_large      = al_load_bitmap("data/sprites/asteroid-big.png");
-  asteroids.asteroid_large_90   = al_load_bitmap("data/sprites/asteroid-big-90.png");
-  asteroids.asteroid_large_180  = al_load_bitmap("data/sprites/asteroid-big-180.png");
-  asteroids.asteroid_large_270  = al_load_bitmap("data/sprites/asteroid-big-270.png");
-  asteroids.asteroid_medium     = al_load_bitmap("data/sprites/asteroid-medium.png");
-  asteroids.asteroid_medium_90  = al_load_bitmap("data/sprites/asteroid-medium-90.png");
-  asteroids.asteroid_medium_180 = al_load_bitmap("data/sprites/asteroid-medium-180.png");
-  asteroids.asteroid_medium_270 = al_load_bitmap("data/sprites/asteroid-medium-270.png");
-  asteroids.asteroid_small      = al_load_bitmap("data/sprites/asteroid-small.png");
-  asteroids.asteroid_small_90   = al_load_bitmap("data/sprites/asteroid-small-90.png");
-  asteroids.asteroid_small_180  = al_load_bitmap("data/sprites/asteroid-small-180.png");
-  asteroids.asteroid_small_270  = al_load_bitmap("data/sprites/asteroid-small-270.png");
+  if((asteroids.asteroid_large = al_load_bitmap("data/sprites/asteroid-big.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-big.png\n");
+  if((asteroids.asteroid_large_90 = al_load_bitmap("data/sprites/asteroid-big-90.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-big-90.png\n");
+  if((asteroids.asteroid_large_180 = al_load_bitmap("data/sprites/asteroid-big-180.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-big-180.png\n");
+  if((asteroids.asteroid_large_270 = al_load_bitmap("data/sprites/asteroid-big-270.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-big-270.png\n");
+  if((asteroids.asteroid_medium = al_load_bitmap("data/sprites/asteroid-medium.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-medium.png\n");
+  if((asteroids.asteroid_medium_90 = al_load_bitmap("data/sprites/asteroid-medium-90.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-medium-90.png\n");
+  if((asteroids.asteroid_medium_180 = al_load_bitmap("data/sprites/asteroid-medium-180.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-medium-180.png\n");
+  if((asteroids.asteroid_medium_270 = al_load_bitmap("data/sprites/asteroid-medium-270.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-medium-270.png\n");
+  if((asteroids.asteroid_small = al_load_bitmap("data/sprites/asteroid-small.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-small.png\n");
+  if((asteroids.asteroid_small_90 = al_load_bitmap("data/sprites/asteroid-small-90.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-small-90.png\n");
+  if((asteroids.asteroid_small_180 = al_load_bitmap("data/sprites/asteroid-small-180.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-small-180.png\n");
+  if((asteroids.asteroid_small_270 = al_load_bitmap("data/sprites/asteroid-small-270.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-small-270.png\n");
 
   return true;
 }
@@ -337,33 +349,33 @@ load_asteroid_sprite(uint8_t size, float angle)
   switch(size) {
     case ASTEROID_LARGE:
       if(angle < 90.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_large);
+        sprite = asteroids.asteroid_large;
       else if(angle < 180.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_large_90);
+        sprite = asteroids.asteroid_large_90;
       else if(angle < 270.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_large_180);
+        sprite = asteroids.asteroid_large_180;
       else if(angle < 360.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_large_270);
+        sprite = asteroids.asteroid_large_270;
       break;
     case ASTEROID_MEDIUM:
       if(angle < 90.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_medium);
+        sprite = asteroids.asteroid_medium;
       else if(angle < 180.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_medium_90);
+        sprite = asteroids.asteroid_medium_90;
       else if(angle < 270.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_medium_180);
+        sprite = asteroids.asteroid_medium_180;
       else if(angle < 360.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_medium_270);
+        sprite = asteroids.asteroid_medium_270;
       break;
     case ASTEROID_SMALL:
       if(angle < 90.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_small);
+        sprite = asteroids.asteroid_small;
       else if(angle < 180.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_small_90);
+        sprite = asteroids.asteroid_small_90;
       else if(angle < 270.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_small_180);
+        sprite = asteroids.asteroid_small_180;
       else if(angle < 360.0)
-        sprite = al_clone_bitmap(asteroids.asteroid_small_270);
+        sprite = asteroids.asteroid_small_270;
       break;
   }
 
@@ -424,8 +436,10 @@ free_asteroid(struct asteroid *asteroid)
   if(asteroid->velocity != NULL)
     free(asteroid->velocity);
 
+  /*
   if(asteroid->sprite != NULL)
     al_destroy_bitmap(asteroid->sprite);
+    */
   if(asteroid != NULL)
     free(asteroid);
 
