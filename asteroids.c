@@ -49,10 +49,10 @@ enum CONTROLS {
   KEY_SPACE  /* fire ze missiles */
 };
 
-struct vector {
+typedef struct vector_t {
   float x;
   float y;
-};
+} vector;
 
 struct level {
   int n_asteroids;
@@ -65,8 +65,8 @@ struct missile {
   bool active;
 
   float angle;
-  struct vector *position;
-  struct vector *velocity;
+  vector *position;
+  vector *velocity;
 
   int64_t time;
 
@@ -81,8 +81,8 @@ struct ship {
   struct missile **missiles;
 
   float angle;
-  struct vector *position;
-  struct vector *velocity;
+  vector *position;
+  vector *velocity;
 
   ALLEGRO_BITMAP *sprite;
   ALLEGRO_BITMAP *thrust_sprite;
@@ -95,8 +95,8 @@ struct asteroid {
   uint8_t points;
 
   float angle;
-  struct vector *position;
-  struct vector *velocity;
+  vector *position;
+  vector *velocity;
 
   ALLEGRO_BITMAP *sprite;
 };
@@ -148,7 +148,7 @@ rotate_ship(struct ship *ship, float deg)
 }
 
 void
-wrap_position(struct vector *position)
+wrap_position(vector *position)
 {
   if(position->x > SCREEN_W)
     position->x = 0;
@@ -281,8 +281,8 @@ static struct missile *
 create_missile(struct ship *ship)
 {
   struct missile *missile = malloc(sizeof(struct missile));
-  missile->position = malloc(sizeof(struct vector));
-  missile->velocity = malloc(sizeof(struct vector));
+  missile->position = malloc(sizeof(vector));
+  missile->velocity = malloc(sizeof(vector));
 
   missile->sprite = al_load_bitmap("data/sprites/missile.png");
   missile->width  = al_get_bitmap_width(missile->sprite);
@@ -306,8 +306,8 @@ static struct ship *
 create_ship(void)
 {
   struct ship *ship = malloc(sizeof(struct ship));
-  ship->position = malloc(sizeof(struct vector));
-  ship->velocity = malloc(sizeof(struct vector));
+  ship->position = malloc(sizeof(vector));
+  ship->velocity = malloc(sizeof(vector));
 
   ship->sprite = al_load_bitmap("data/sprites/ship.png");
   if(!ship->sprite) {
@@ -394,8 +394,8 @@ create_asteroid(uint8_t size)
 {
   struct asteroid *asteroid = malloc(sizeof(struct asteroid));
 
-  asteroid->position = malloc(sizeof(struct vector));
-  asteroid->velocity = malloc(sizeof(struct vector));
+  asteroid->position = malloc(sizeof(vector));
+  asteroid->velocity = malloc(sizeof(vector));
 
   asteroid->size  = size;
   asteroid->angle = rand_f(0.0, 360.0);
@@ -447,7 +447,7 @@ static void
 explode_asteroid(struct asteroid *asteroid, struct missile *missile)
 {
   int i;
-  struct vector position;
+  vector position;
   struct level *level = asteroids.level;
 
   missile->active = false;
@@ -592,7 +592,6 @@ draw_ship(struct ship *ship, bool thrusting)
     sprite = ship->thrust_sprite;
     ship->thrust_visible = true;
   } else {
-    sprite = ship->sprite;
     ship->thrust_visible = false;
   }
 
@@ -706,7 +705,7 @@ missile_collision(struct missile *missile, struct asteroid *asteroid)
   float rock_y = asteroid->position->y   - (asteroid->height / 2);
 
   return collision(missile_x, missile_y, missile->width, missile->height,
-                   rock_x, rock_y, asteroid->width, asteroid->height);
+      rock_x, rock_y, asteroid->width, asteroid->height);
 }
 
 static void
