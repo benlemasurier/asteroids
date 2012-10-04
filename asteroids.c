@@ -67,7 +67,7 @@ typedef struct missile_t {
   ALLEGRO_BITMAP *sprite;
 } MISSILE;
 
-struct ship {
+typedef struct ship_t {
   int width;
   int height;
   bool thrust_visible;
@@ -80,7 +80,7 @@ struct ship {
 
   ALLEGRO_BITMAP *sprite;
   ALLEGRO_BITMAP *thrust_sprite;
-};
+} SHIP;
 
 typedef struct asteroid_t {
   int width;
@@ -105,7 +105,7 @@ struct asteroids {
   unsigned long int   high_score;
 
   int lives;
-  struct ship  *ship;
+  SHIP  *ship;
   LEVEL *level;
 
   ALLEGRO_FONT    *small_font;
@@ -137,7 +137,7 @@ shutdown()
 }
 
 void
-rotate_ship(struct ship *ship, float deg)
+rotate_ship(SHIP *ship, float deg)
 {
   ship->angle += deg;
 
@@ -278,7 +278,7 @@ init(void)
 }
 
 static MISSILE *
-create_missile(struct ship *ship)
+create_missile(SHIP *ship)
 {
   MISSILE *missile = malloc(sizeof(MISSILE));
   missile->position = malloc(sizeof(VECTOR));
@@ -302,10 +302,10 @@ create_missile(struct ship *ship)
   return missile;
 }
 
-static struct ship *
+static SHIP *
 create_ship(void)
 {
-  struct ship *ship = malloc(sizeof(struct ship));
+  SHIP *ship = malloc(sizeof(SHIP));
   ship->position = malloc(sizeof(VECTOR));
   ship->velocity = malloc(sizeof(VECTOR));
 
@@ -515,7 +515,7 @@ create_level(int n_asteroids)
 }
 
 static void
-launch_missile(struct ship *ship, MISSILE *missile)
+launch_missile(SHIP *ship, MISSILE *missile)
 {
   missile->active = true;
   missile->angle  = ship->angle;
@@ -529,7 +529,7 @@ launch_missile(struct ship *ship, MISSILE *missile)
 }
 
 static void
-free_ship(struct ship *ship)
+free_ship(SHIP *ship)
 {
   if(ship->position != NULL)
     free(ship->position);
@@ -567,21 +567,21 @@ free_missile(MISSILE *missile)
 }
 
 static void
-accelerate(struct ship *ship)
+accelerate(SHIP *ship)
 {
   ship->velocity->x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
   ship->velocity->y += (float) -(cos(deg2rad(ship->angle))) * ACCEL_SCALE;
 }
 
 static void
-drag(struct ship *ship)
+drag(SHIP *ship)
 {
   ship->velocity->x *= DRAG;
   ship->velocity->y *= DRAG;
 }
 
 static void
-draw_ship(struct ship *ship, bool thrusting)
+draw_ship(SHIP *ship, bool thrusting)
 {
   ALLEGRO_BITMAP *sprite;
 
@@ -682,7 +682,7 @@ collision(float b1_x, float b1_y, int b1_w, int b1_h,
 }
 
 static bool
-asteroid_collision(struct ship *ship, ASTEROID *asteroid)
+asteroid_collision(SHIP *ship, ASTEROID *asteroid)
 {
   float ship_x = ship->position->x - (ship->width  / 2);
   float ship_y = ship->position->y - (ship->height / 2);
@@ -709,7 +709,7 @@ missile_collision(MISSILE *missile, ASTEROID *asteroid)
 }
 
 static void
-update_ship(struct ship *ship)
+update_ship(SHIP *ship)
 {
   ship->position->x += ship->velocity->x;
   ship->position->y += ship->velocity->y;
