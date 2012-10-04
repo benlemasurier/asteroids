@@ -399,8 +399,8 @@ create_asteroid(uint8_t size)
   asteroid->angle = rand_f(0.0, 360.0);
   asteroid->position->x = rand_f(1.0, SCREEN_W);
   asteroid->position->y = rand_f(1.0, SCREEN_H);
-  asteroid->velocity->x = (float)   sin(deg2rad(asteroid->angle))  * rand_f(0.1, 1.0);
-  asteroid->velocity->y = (float) -(cos(deg2rad(asteroid->angle))) * rand_f(0.1, 1.0);
+  asteroid->velocity->x = (float)   sin(deg2rad(asteroid->angle))  * rand_f(0.1, 1.2);
+  asteroid->velocity->y = (float) -(cos(deg2rad(asteroid->angle))) * rand_f(0.1, 1.2);
 
   switch(size) {
     case ASTEROID_LARGE:
@@ -435,11 +435,6 @@ free_asteroid(struct asteroid *asteroid)
     free(asteroid->position);
   if(asteroid->velocity != NULL)
     free(asteroid->velocity);
-
-  /*
-  if(asteroid->sprite != NULL)
-    al_destroy_bitmap(asteroid->sprite);
-    */
   if(asteroid != NULL)
     free(asteroid);
 
@@ -499,7 +494,7 @@ explode_asteroid(struct asteroid *asteroid, struct missile *missile)
   } else if(asteroid->size == ASTEROID_SMALL) {
     struct asteroid **temp = malloc(sizeof(struct asteroid *) * level->n_asteroids - 1);
 
-    for(int i = 0, j = 0; j < level->n_asteroids; i++) {
+    for(int i = 0, j = 0; i < level->n_asteroids; i++) {
       if(level->asteroids[i] != asteroid) {
         temp[j] = level->asteroids[i];
         j++;
@@ -892,8 +887,7 @@ main(int argc, char **argv)
     }
   }
 
-  /* FIXME: free asteroid sprites */
-
+  // cleanup
   if(asteroids.timer != NULL)
     al_destroy_timer(asteroids.timer);
   if(asteroids.event_queue != NULL)
@@ -906,6 +900,20 @@ main(int argc, char **argv)
   for(int i = 0; i < asteroids.level->n_asteroids; i++)
     free_asteroid(asteroids.level->asteroids[i]);
   free_ship(&asteroids.ship);
+
+  al_destroy_bitmap(asteroids.asteroid_large);
+  al_destroy_bitmap(asteroids.asteroid_large_90);
+  al_destroy_bitmap(asteroids.asteroid_large_180);
+  al_destroy_bitmap(asteroids.asteroid_large_270);
+  al_destroy_bitmap(asteroids.asteroid_medium);
+  al_destroy_bitmap(asteroids.asteroid_medium_90);
+  al_destroy_bitmap(asteroids.asteroid_medium_180);
+  al_destroy_bitmap(asteroids.asteroid_medium_270);
+  al_destroy_bitmap(asteroids.asteroid_small);
+  al_destroy_bitmap(asteroids.asteroid_small_90);
+  al_destroy_bitmap(asteroids.asteroid_small_180);
+  al_destroy_bitmap(asteroids.asteroid_small_270);
+
 
   exit(EXIT_SUCCESS);
 }
