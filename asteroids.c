@@ -459,7 +459,7 @@ explode_asteroid(struct asteroid *asteroid, struct missile *missile)
     if(level->asteroids[i] == asteroid)
       break;
 
-  if(asteroid->size == ASTEROID_LARGE) {
+  if(asteroid->size != ASTEROID_SMALL) {
     level->n_asteroids++;
     level->asteroids = (struct asteroid **) realloc(level->asteroids, sizeof(struct asteroid *) * level->n_asteroids);
     if(level->asteroids == NULL)
@@ -467,31 +467,20 @@ explode_asteroid(struct asteroid *asteroid, struct missile *missile)
 
     /* replace the destroyed asteroid */
     free_asteroid(asteroid);
-    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_MEDIUM);
-    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_MEDIUM);
+    if(asteroid->size == ASTEROID_LARGE) {
+      asteroids.level->asteroids[i] = create_asteroid(ASTEROID_MEDIUM);
+      asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_MEDIUM);
+    } else {
+      asteroids.level->asteroids[i] = create_asteroid(ASTEROID_SMALL);
+      asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_SMALL);
+    }
 
     asteroids.level->asteroids[i]->position->x = position.x;
     asteroids.level->asteroids[i]->position->y = position.y;
     asteroids.level->asteroids[level->n_asteroids - 1]->position->x = position.x;
     asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
     return;
-  } else if(asteroid->size == ASTEROID_MEDIUM) {
-    level->n_asteroids++;
-    level->asteroids = (struct asteroid **) realloc(level->asteroids, sizeof(struct asteroid *) * level->n_asteroids);
-    if(level->asteroids == NULL)
-      fprintf(stderr, "unable to reallocate memory\n");
-
-    /* replace the destroyed asteroid */
-    free_asteroid(asteroid);
-    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_SMALL);
-    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_SMALL);
-
-    asteroids.level->asteroids[i]->position->x = position.x;
-    asteroids.level->asteroids[i]->position->y = position.y;
-    asteroids.level->asteroids[level->n_asteroids - 1]->position->x = position.x;
-    asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
-    return;
-  } else if(asteroid->size == ASTEROID_SMALL) {
+  } else {
     struct asteroid **temp = malloc(sizeof(struct asteroid *) * level->n_asteroids - 1);
 
     for(int i = 0, j = 0; i < level->n_asteroids; i++) {
