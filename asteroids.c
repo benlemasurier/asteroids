@@ -280,7 +280,7 @@ init(void)
 static MISSILE *
 create_missile(SHIP *ship)
 {
-  MISSILE *missile = malloc(sizeof(MISSILE));
+  MISSILE *missile  = malloc(sizeof(MISSILE));
   missile->position = malloc(sizeof(VECTOR));
   missile->velocity = malloc(sizeof(VECTOR));
 
