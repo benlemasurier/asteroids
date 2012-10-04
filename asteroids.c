@@ -43,7 +43,10 @@ const int   SCORE_Y       = 27;
 const int   HIGH_SCORE_Y  = 30;
 
 enum CONTROLS {
-  KEY_UP, KEY_LEFT, KEY_RIGHT, KEY_SPACE
+  KEY_UP,    /* thrust */
+  KEY_LEFT,  /* rotate left */
+  KEY_RIGHT, /* rotate right */
+  KEY_SPACE  /* fire ze missiles */
 };
 
 struct vector {
@@ -129,7 +132,7 @@ struct asteroids {
 static void
 shutdown()
 {
-  // FIXME: why can't I cleanly access asteroids.timer,display,etc here?
+  /* FIXME: why can't I cleanly access asteroids.timer,display,etc here? */
   printf("shutdown.\n");
 }
 
@@ -328,8 +331,7 @@ create_ship(void)
   ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
   ship->thrust_visible = false;
 
-  int i;
-  for(i = 0; i < MAX_MISSILES; i++)
+  for(int i = 0; i < MAX_MISSILES; i++)
     ship->missiles[i] = create_missile(ship);
 
   return ship;
@@ -527,17 +529,17 @@ launch_missile(struct ship *ship, struct missile *missile)
 }
 
 static void
-free_ship(struct ship **ship)
+free_ship(struct ship *ship)
 {
-  if((*ship)->position != NULL)
-    free((*ship)->position);
-  if((*ship)->velocity != NULL)
-    free((*ship)->velocity);
+  if(ship->position != NULL)
+    free(ship->position);
+  if(ship->velocity != NULL)
+    free(ship->velocity);
 
-  if((*ship)->sprite != NULL)
-    al_destroy_bitmap((*ship)->sprite);
-  if((*ship) != NULL)
-    free((*ship));
+  if(ship->sprite != NULL)
+    al_destroy_bitmap(ship->sprite);
+  if(ship != NULL)
+    free(ship);
 
   ship = NULL;
 }
@@ -708,6 +710,38 @@ missile_collision(struct missile *missile, struct asteroid *asteroid)
                    rock_x, rock_y, asteroid->width, asteroid->height);
 }
 
+static void
+update_ship(struct ship *ship)
+{
+  ship->position->x += ship->velocity->x;
+  ship->position->y += ship->velocity->y;
+  wrap_position(asteroids.ship->position);
+
+  /* slow down over time */
+  drag(asteroids.ship);
+}
+
+static void
+update_asteroid(struct asteroid *asteroid)
+{
+  asteroid->position->x += asteroid->velocity->x;
+  asteroid->position->y += asteroid->velocity->y;
+  wrap_position(asteroid->position);
+}
+
+static void
+update_missile(struct missile *missile)
+{
+  if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(asteroids.timer)) {
+    missile->active = false;
+    return;
+  }
+
+  missile->position->x += missile->velocity->x;
+  missile->position->y += missile->velocity->y;
+  wrap_position(missile->position);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -740,20 +774,19 @@ main(int argc, char **argv)
     al_wait_for_event(asteroids.event_queue, &ev);
 
     if(ev.type == ALLEGRO_EVENT_TIMER) {
-      // move forward
+      /* move forward */
       if(key[KEY_UP])
         accelerate(asteroids.ship);
 
-      // rotate
+      /* rotate */
       if(key[KEY_LEFT])
         rotate_ship(asteroids.ship, -3);
       if(key[KEY_RIGHT])
         rotate_ship(asteroids.ship, 3);
 
-      // shoot
+      /* shoot */
       if(key[KEY_SPACE]) {
-        int i;
-        for(i = 0; i < MAX_MISSILES; i++) {
+        for(int i = 0; i < MAX_MISSILES; i++) {
           if(!asteroids.ship->missiles[i]->active && !debounce) {
             launch_missile(asteroids.ship, asteroids.ship->missiles[i]);
             debounce = true;
@@ -761,6 +794,33 @@ main(int argc, char **argv)
           }
         }
       }
+
+      /* ship->asteroid collisions. */
+      for(int i = 0; i < asteroids.level->n_asteroids; i++)
+        if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i]))
+          printf("ZOMG COLLISION!!!\n");
+
+      /* missile->asteroid collisions. FIXME: who made this mess? */
+      for(int i = 0; i < MAX_MISSILES; i++) {
+        if(asteroids.ship->missiles[i]->active) {
+          for(int j = 0; j < asteroids.level->n_asteroids; j++) {
+            if(missile_collision(asteroids.ship->missiles[i], asteroids.level->asteroids[j])) {
+              explode_asteroid(asteroids.level->asteroids[j], asteroids.ship->missiles[i]);
+              i = 0;
+              j = 0;
+              continue;
+            }
+          }
+        }
+      }
+
+      /* update positions */
+      update_ship(asteroids.ship);
+      for(int i = 0; i < asteroids.level->n_asteroids; i++)
+        update_asteroid(asteroids.level->asteroids[i]);
+      for(int i = 0; i < MAX_MISSILES; i++)
+        if(asteroids.ship->missiles[i]->active)
+          update_missile(asteroids.ship->missiles[i]);
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -801,76 +861,26 @@ main(int argc, char **argv)
 
     if(redraw && al_is_event_queue_empty(asteroids.event_queue)) {
       redraw = false;
-
-      /* ship->asteroid collisions. */
-      for(int i = 0; i < asteroids.level->n_asteroids; i++) {
-        if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i])) {
-          printf("ZOMG COLLISION!!!\n");
-        }
-      }
-
-      /* missile->asteroid collisions. FIXME: who made this mess? */
-      for(int i = 0; i < MAX_MISSILES; i++) {
-        if(asteroids.ship->missiles[i]->active) {
-          for(int j = 0; j < asteroids.level->n_asteroids; j++) {
-            if(missile_collision(asteroids.ship->missiles[i], asteroids.level->asteroids[j])) {
-              explode_asteroid(asteroids.level->asteroids[j], asteroids.ship->missiles[i]);
-              i = 0;
-              j = 0;
-              continue;
-            }
-          }
-        }
-      }
-
-      /* update positions */
-      asteroids.ship->position->x += asteroids.ship->velocity->x;
-      asteroids.ship->position->y += asteroids.ship->velocity->y;
-
-      for(int i = 0; i < asteroids.level->n_asteroids; i++) {
-        struct asteroid *asteroid = asteroids.level->asteroids[i];
-        asteroid->position->x += asteroid->velocity->x;
-        asteroid->position->y += asteroid->velocity->y;
-      }
-
-      /* screen wrap */
-      wrap_position(asteroids.ship->position);
-      for(int i = 0; i < asteroids.level->n_asteroids; i++)
-        wrap_position(asteroids.level->asteroids[i]->position);
-
       al_clear_to_color(al_map_rgb(0, 0, 0));
 
-      /* if the ship is moving, show fire. */
-      draw_ship(asteroids.ship, key[KEY_UP]);
-
-      for(int i = 0; i < asteroids.level->n_asteroids; i++)
-        draw_asteroid(asteroids.level->asteroids[i]);
       draw_score();
       draw_high_score();
       draw_lives();
-
-      for(int i = 0; i < MAX_MISSILES; i++) {
-        if(asteroids.ship->missiles[i]->active) {
-          if((asteroids.ship->missiles[i]->time + (MISSILE_TTL * FPS)) < al_get_timer_count(asteroids.timer)) {
-            asteroids.ship->missiles[i]->active = false;
-          } else {
-            asteroids.ship->missiles[i]->position->x += asteroids.ship->missiles[i]->velocity->x;
-            asteroids.ship->missiles[i]->position->y += asteroids.ship->missiles[i]->velocity->y;
-            wrap_position(asteroids.ship->missiles[i]->position);
-
-            draw_missile(asteroids.ship->missiles[i]);
-          }
-        }
-      }
+      draw_ship(asteroids.ship, key[KEY_UP]);
+      for(int i = 0; i < MAX_MISSILES; i++)
+        if(asteroids.ship->missiles[i]->active)
+          draw_missile(asteroids.ship->missiles[i]);
+      for(int i = 0; i < asteroids.level->n_asteroids; i++)
+        draw_asteroid(asteroids.level->asteroids[i]);
+      for(int i = 0; i < MAX_MISSILES; i++)
+        if(asteroids.ship->missiles[i]->active)
+          draw_missile(asteroids.ship->missiles[i]);
 
       al_flip_display();
-
-      /* slow down over time */
-      drag(asteroids.ship);
     }
   }
 
-  // cleanup
+  /* FIXME: cleanup */
   if(asteroids.timer != NULL)
     al_destroy_timer(asteroids.timer);
   if(asteroids.event_queue != NULL)
@@ -882,7 +892,7 @@ main(int argc, char **argv)
     free_missile(asteroids.ship->missiles[i]);
   for(int i = 0; i < asteroids.level->n_asteroids; i++)
     free_asteroid(asteroids.level->asteroids[i]);
-  free_ship(&asteroids.ship);
+  free_ship(asteroids.ship);
 
   al_destroy_bitmap(asteroids.asteroid_large);
   al_destroy_bitmap(asteroids.asteroid_large_90);
@@ -896,7 +906,6 @@ main(int argc, char **argv)
   al_destroy_bitmap(asteroids.asteroid_small_90);
   al_destroy_bitmap(asteroids.asteroid_small_180);
   al_destroy_bitmap(asteroids.asteroid_small_270);
-
 
   exit(EXIT_SUCCESS);
 }
