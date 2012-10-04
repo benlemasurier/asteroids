@@ -54,11 +54,6 @@ typedef struct vector_t {
   float y;
 } vector;
 
-struct level {
-  int n_asteroids;
-  struct asteroid **asteroids;
-};
-
 struct missile {
   int width;
   int height;
@@ -88,7 +83,7 @@ struct ship {
   ALLEGRO_BITMAP *thrust_sprite;
 };
 
-struct asteroid {
+typedef struct asteroid_t {
   int width;
   int height;
   uint8_t size;
@@ -99,6 +94,11 @@ struct asteroid {
   vector *velocity;
 
   ALLEGRO_BITMAP *sprite;
+} ASTEROID;
+
+struct level {
+  int n_asteroids;
+  ASTEROID **asteroids;
 };
 
 struct asteroids {
@@ -389,10 +389,10 @@ load_asteroid_sprite(uint8_t size, float angle)
   return sprite;
 }
 
-static struct asteroid *
+static ASTEROID *
 create_asteroid(uint8_t size)
 {
-  struct asteroid *asteroid = malloc(sizeof(struct asteroid));
+  ASTEROID *asteroid = malloc(sizeof(ASTEROID));
 
   asteroid->position = malloc(sizeof(vector));
   asteroid->velocity = malloc(sizeof(vector));
@@ -431,7 +431,7 @@ create_asteroid(uint8_t size)
 }
 
 static void
-free_asteroid(struct asteroid *asteroid)
+free_asteroid(ASTEROID *asteroid)
 {
   if(asteroid->position != NULL)
     free(asteroid->position);
@@ -444,7 +444,7 @@ free_asteroid(struct asteroid *asteroid)
 }
 
 static void
-explode_asteroid(struct asteroid *asteroid, struct missile *missile)
+explode_asteroid(ASTEROID *asteroid, struct missile *missile)
 {
   int i;
   vector position;
@@ -463,7 +463,7 @@ explode_asteroid(struct asteroid *asteroid, struct missile *missile)
 
   if(asteroid->size != ASTEROID_SMALL) {
     level->n_asteroids++;
-    level->asteroids = (struct asteroid **) realloc(level->asteroids, sizeof(struct asteroid *) * level->n_asteroids);
+    level->asteroids = (ASTEROID **) realloc(level->asteroids, sizeof(ASTEROID *) * level->n_asteroids);
     if(level->asteroids == NULL)
       fprintf(stderr, "unable to reallocate memory\n");
 
@@ -483,7 +483,7 @@ explode_asteroid(struct asteroid *asteroid, struct missile *missile)
     asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
     return;
   } else {
-    struct asteroid **temp = malloc(sizeof(struct asteroid *) * level->n_asteroids - 1);
+    ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
 
     for(int i = 0, j = 0; i < level->n_asteroids; i++) {
       if(level->asteroids[i] != asteroid) {
@@ -507,7 +507,7 @@ create_level(int n_asteroids)
   struct level *level = malloc(sizeof(struct level));
 
   level->n_asteroids = n_asteroids;
-  level->asteroids = malloc(sizeof(struct asteroid *) * n_asteroids);
+  level->asteroids = malloc(sizeof(ASTEROID *) * n_asteroids);
   for(int i = 0; i < n_asteroids; i++)
     level->asteroids[i] = create_asteroid(ASTEROID_LARGE);
 
@@ -605,7 +605,7 @@ draw_ship(struct ship *ship, bool thrusting)
 }
 
 static void
-draw_asteroid(struct asteroid *asteroid)
+draw_asteroid(ASTEROID *asteroid)
 {
   al_draw_bitmap(
       asteroid->sprite,
@@ -682,7 +682,7 @@ collision(float b1_x, float b1_y, int b1_w, int b1_h,
 }
 
 static bool
-asteroid_collision(struct ship *ship, struct asteroid *asteroid)
+asteroid_collision(struct ship *ship, ASTEROID *asteroid)
 {
   float ship_x = ship->position->x - (ship->width  / 2);
   float ship_y = ship->position->y - (ship->height / 2);
@@ -694,7 +694,7 @@ asteroid_collision(struct ship *ship, struct asteroid *asteroid)
 }
 
 static bool
-missile_collision(struct missile *missile, struct asteroid *asteroid)
+missile_collision(struct missile *missile, ASTEROID *asteroid)
 {
   if(asteroid == NULL)
     return false;
@@ -720,7 +720,7 @@ update_ship(struct ship *ship)
 }
 
 static void
-update_asteroid(struct asteroid *asteroid)
+update_asteroid(ASTEROID *asteroid)
 {
   asteroid->position->x += asteroid->velocity->x;
   asteroid->position->y += asteroid->velocity->y;
