@@ -54,7 +54,7 @@ typedef struct vector_t {
   float y;
 } VECTOR;
 
-struct missile {
+typedef struct missile_t {
   int width;
   int height;
   bool active;
@@ -66,14 +66,14 @@ struct missile {
   int64_t time;
 
   ALLEGRO_BITMAP *sprite;
-};
+} MISSILE;
 
 struct ship {
   int width;
   int height;
   bool thrust_visible;
 
-  struct missile **missiles;
+  MISSILE **missiles;
 
   float angle;
   VECTOR *position;
@@ -277,10 +277,10 @@ init(void)
   return true;
 }
 
-static struct missile *
+static MISSILE *
 create_missile(struct ship *ship)
 {
-  struct missile *missile = malloc(sizeof(struct missile));
+  MISSILE *missile = malloc(sizeof(MISSILE));
   missile->position = malloc(sizeof(VECTOR));
   missile->velocity = malloc(sizeof(VECTOR));
 
@@ -444,7 +444,7 @@ free_asteroid(ASTEROID *asteroid)
 }
 
 static void
-explode_asteroid(ASTEROID *asteroid, struct missile *missile)
+explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
 {
   int i;
   VECTOR position;
@@ -515,7 +515,7 @@ create_level(int n_asteroids)
 }
 
 static void
-launch_missile(struct ship *ship, struct missile *missile)
+launch_missile(struct ship *ship, MISSILE *missile)
 {
   missile->active = true;
   missile->angle  = ship->angle;
@@ -545,7 +545,7 @@ free_ship(struct ship *ship)
 }
 
 static void
-free_missile(struct missile *missile)
+free_missile(MISSILE *missile)
 {
   if(missile == NULL)
     return;
@@ -615,7 +615,7 @@ draw_asteroid(ASTEROID *asteroid)
 }
 
 static void
-draw_missile(struct missile *missile)
+draw_missile(MISSILE *missile)
 {
   al_draw_bitmap(
       missile->sprite,
@@ -694,7 +694,7 @@ asteroid_collision(struct ship *ship, ASTEROID *asteroid)
 }
 
 static bool
-missile_collision(struct missile *missile, ASTEROID *asteroid)
+missile_collision(MISSILE *missile, ASTEROID *asteroid)
 {
   if(asteroid == NULL)
     return false;
@@ -728,7 +728,7 @@ update_asteroid(ASTEROID *asteroid)
 }
 
 static void
-update_missile(struct missile *missile)
+update_missile(MISSILE *missile)
 {
   if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(asteroids.timer)) {
     missile->active = false;
