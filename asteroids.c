@@ -583,27 +583,26 @@ drag(struct ship *ship)
 static void
 draw_ship(struct ship *ship, bool thrusting)
 {
+  ALLEGRO_BITMAP *sprite;
+
   /* this creates a flashing thrust visualization
-   * not _exactly_ like the original (too fast). (FIXME) */
+   * not _exactly_ like the original (too fast), but close. (FIXME) */
+  sprite = ship->sprite;
   if(thrusting && !ship->thrust_visible) {
-    al_draw_rotated_bitmap(
-        ship->thrust_sprite,
-        ship->width  / 2,
-        ship->height / 2,
-        ship->position->x,
-        ship->position->y,
-        deg2rad(ship->angle), 0);
+    sprite = ship->thrust_sprite;
     ship->thrust_visible = true;
   } else {
-    al_draw_rotated_bitmap(
-        ship->sprite,
-        ship->width  / 2,
-        ship->height / 2,
-        ship->position->x,
-        ship->position->y,
-        deg2rad(ship->angle), 0);
+    sprite = ship->sprite;
     ship->thrust_visible = false;
   }
+
+  al_draw_rotated_bitmap(
+      sprite,
+      ship->width  / 2,
+      ship->height / 2,
+      ship->position->x,
+      ship->position->y,
+      deg2rad(ship->angle), 0);
 }
 
 static void
@@ -751,10 +750,10 @@ main(int argc, char **argv)
   asteroids.timer       = NULL;
   asteroids.event_queue = NULL;
 
-  bool key[4]   = { false, false, false, false };
   bool redraw   = true;
   bool quit     = false;
-  bool debounce = false; /* force user to press for each fire */
+  bool debounce = false; /* force button press for each fire */
+  bool key[4]   = { false, false, false, false };
 
   atexit(shutdown);
 
