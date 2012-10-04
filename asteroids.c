@@ -497,20 +497,20 @@ explode_asteroid(struct asteroid *asteroid, struct missile *missile)
     asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
     return;
   } else if(asteroid->size == ASTEROID_SMALL) {
-    /*
     struct asteroid **temp = malloc(sizeof(struct asteroid *) * level->n_asteroids - 1);
-    for(int i = 0, j = 0; j < level->n_asteroids; i++) {
-      if(level->asteroids[i] == NULL)
-        continue;
 
-      temp[j] = level->asteroids[i];
-      j++;
+    for(int i = 0, j = 0; j < level->n_asteroids; i++) {
+      if(level->asteroids[i] != asteroid) {
+        temp[j] = level->asteroids[i];
+        j++;
+      }
     }
 
+    free_asteroid(asteroid);
     free(level->asteroids);
     level->asteroids = temp;
     level->n_asteroids--;
-    */
+
     return;
   }
 }
