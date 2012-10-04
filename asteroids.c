@@ -299,40 +299,40 @@ create_missile(struct ship *ship)
   return missile;
 }
 
-static bool
-create_ship(struct ship **ship)
+static struct ship *
+create_ship(void)
 {
-  *ship = malloc(sizeof(struct ship));
-  (*ship)->position = malloc(sizeof(struct vector));
-  (*ship)->velocity = malloc(sizeof(struct vector));
+  struct ship *ship = malloc(sizeof(struct ship));
+  ship->position = malloc(sizeof(struct vector));
+  ship->velocity = malloc(sizeof(struct vector));
 
-  (*ship)->sprite = al_load_bitmap("data/sprites/ship.png");
-  if(!(*ship)->sprite) {
+  ship->sprite = al_load_bitmap("data/sprites/ship.png");
+  if(!ship->sprite) {
     fprintf(stderr, "failed to create ship sprite.\n");
-    return false;
+    return NULL;
   }
 
-  (*ship)->thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png");
-  if(!(*ship)->sprite) {
+  ship->thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png");
+  if(!ship->sprite) {
     fprintf(stderr, "failed to create ship (thrust) sprite.\n");
-    return false;
+    return NULL;
   }
 
-  (*ship)->width       = al_get_bitmap_width((*ship)->sprite);
-  (*ship)->height      = al_get_bitmap_height((*ship)->sprite);
-  (*ship)->angle       = 0.0;
-  (*ship)->velocity->x = 0.0;
-  (*ship)->velocity->y = 0.0;
-  (*ship)->position->x = SCREEN_W / 2;
-  (*ship)->position->y = SCREEN_H / 2;
-  (*ship)->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
-  (*ship)->thrust_visible = false;
+  ship->width       = al_get_bitmap_width(ship->sprite);
+  ship->height      = al_get_bitmap_height(ship->sprite);
+  ship->angle       = 0.0;
+  ship->velocity->x = 0.0;
+  ship->velocity->y = 0.0;
+  ship->position->x = SCREEN_W / 2;
+  ship->position->y = SCREEN_H / 2;
+  ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
+  ship->thrust_visible = false;
 
   int i;
   for(i = 0; i < MAX_MISSILES; i++)
-    (*ship)->missiles[i] = create_missile((*ship));
+    ship->missiles[i] = create_missile(ship);
 
-  return true;
+  return ship;
 }
 
 static ALLEGRO_BITMAP *
@@ -516,7 +516,6 @@ static void
 launch_missile(struct ship *ship, struct missile *missile)
 {
   missile->active = true;
-
   missile->angle  = ship->angle;
 
   missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
@@ -721,16 +720,14 @@ main(int argc, char **argv)
   bool key[4]   = { false, false, false, false };
   bool redraw   = true;
   bool quit     = false;
-  bool debounce = false; /* fire debouce, force user to press for each fire */
+  bool debounce = false; /* force user to press for each fire */
 
   atexit(shutdown);
 
-  // setup allegro engine
   if(!init())
     exit(EXIT_FAILURE);
 
-  // this spacecraft must be built
-  if(!create_ship(&asteroids.ship))
+  if((asteroids.ship = create_ship()) == NULL)
     exit(EXIT_FAILURE);
 
   asteroids.level = create_level(4);
@@ -812,7 +809,7 @@ main(int argc, char **argv)
         }
       }
 
-      /* missile->asteroid collisions. FIXME: somebody clean this mess up. */
+      /* missile->asteroid collisions. FIXME: who made this mess? */
       for(int i = 0; i < MAX_MISSILES; i++) {
         if(asteroids.ship->missiles[i]->active) {
           for(int j = 0; j < asteroids.level->n_asteroids; j++) {
@@ -836,22 +833,19 @@ main(int argc, char **argv)
         asteroid->position->y += asteroid->velocity->y;
       }
 
-      // screen wrap
+      /* screen wrap */
       wrap_position(asteroids.ship->position);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         wrap_position(asteroids.level->asteroids[i]->position);
 
       al_clear_to_color(al_map_rgb(0, 0, 0));
 
-      if(key[KEY_UP])
-        draw_ship(asteroids.ship, true);
-      else
-        draw_ship(asteroids.ship, false);
+      /* if the ship is moving, show fire. */
+      draw_ship(asteroids.ship, key[KEY_UP]);
 
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         draw_asteroid(asteroids.level->asteroids[i]);
       draw_score();
-
       draw_high_score();
       draw_lives();
 
@@ -871,7 +865,7 @@ main(int argc, char **argv)
 
       al_flip_display();
 
-      // slow down over time
+      /* slow down over time */
       drag(asteroids.ship);
     }
   }
