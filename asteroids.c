@@ -136,7 +136,7 @@ shutdown()
   printf("shutdown.\n");
 }
 
-void
+static void
 rotate_ship(SHIP *ship, float deg)
 {
   ship->angle += deg;
@@ -147,7 +147,7 @@ rotate_ship(SHIP *ship, float deg)
     ship->angle += 360.0;
 }
 
-void
+static void
 wrap_position(VECTOR *position)
 {
   if(position->x > SCREEN_W)
@@ -160,13 +160,13 @@ wrap_position(VECTOR *position)
     position->y = SCREEN_H;
 }
 
-float
+static float
 deg2rad(float deg)
 {
   return deg * (M_PI / 180);
 }
 
-float
+static float
 rand_f(float low, float high)
 {
   struct timeval t;
@@ -179,29 +179,29 @@ static bool
 preload_asteroid_sprites(void)
 {
   /* FIXME: fugtf */
-  if((asteroids.asteroid_large = al_load_bitmap("data/sprites/asteroid-big.png")) == NULL)
-    fprintf(stderr, "failed to load asteroid-big.png\n");
-  if((asteroids.asteroid_large_90 = al_load_bitmap("data/sprites/asteroid-big-90.png")) == NULL)
-    fprintf(stderr, "failed to load asteroid-big-90.png\n");
-  if((asteroids.asteroid_large_180 = al_load_bitmap("data/sprites/asteroid-big-180.png")) == NULL)
-    fprintf(stderr, "failed to load asteroid-big-180.png\n");
-  if((asteroids.asteroid_large_270 = al_load_bitmap("data/sprites/asteroid-big-270.png")) == NULL)
-    fprintf(stderr, "failed to load asteroid-big-270.png\n");
-  if((asteroids.asteroid_medium = al_load_bitmap("data/sprites/asteroid-medium.png")) == NULL)
+  if((asteroids.asteroid_large = al_load_bitmap("data/sprites/asteroid/large/default.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-large.png\n");
+  if((asteroids.asteroid_large_90 = al_load_bitmap("data/sprites/asteroid/large/90.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-large-90.png\n");
+  if((asteroids.asteroid_large_180 = al_load_bitmap("data/sprites/asteroid/large/180.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-large-180.png\n");
+  if((asteroids.asteroid_large_270 = al_load_bitmap("data/sprites/asteroid/large/270.png")) == NULL)
+    fprintf(stderr, "failed to load asteroid-large-270.png\n");
+  if((asteroids.asteroid_medium = al_load_bitmap("data/sprites/asteroid/medium/default.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-medium.png\n");
-  if((asteroids.asteroid_medium_90 = al_load_bitmap("data/sprites/asteroid-medium-90.png")) == NULL)
+  if((asteroids.asteroid_medium_90 = al_load_bitmap("data/sprites/asteroid/medium/90.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-medium-90.png\n");
-  if((asteroids.asteroid_medium_180 = al_load_bitmap("data/sprites/asteroid-medium-180.png")) == NULL)
+  if((asteroids.asteroid_medium_180 = al_load_bitmap("data/sprites/asteroid/medium/180.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-medium-180.png\n");
-  if((asteroids.asteroid_medium_270 = al_load_bitmap("data/sprites/asteroid-medium-270.png")) == NULL)
+  if((asteroids.asteroid_medium_270 = al_load_bitmap("data/sprites/asteroid/medium/270.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-medium-270.png\n");
-  if((asteroids.asteroid_small = al_load_bitmap("data/sprites/asteroid-small.png")) == NULL)
+  if((asteroids.asteroid_small = al_load_bitmap("data/sprites/asteroid/small/default.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-small.png\n");
-  if((asteroids.asteroid_small_90 = al_load_bitmap("data/sprites/asteroid-small-90.png")) == NULL)
+  if((asteroids.asteroid_small_90 = al_load_bitmap("data/sprites/asteroid/small/90.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-small-90.png\n");
-  if((asteroids.asteroid_small_180 = al_load_bitmap("data/sprites/asteroid-small-180.png")) == NULL)
+  if((asteroids.asteroid_small_180 = al_load_bitmap("data/sprites/asteroid/small/180.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-small-180.png\n");
-  if((asteroids.asteroid_small_270 = al_load_bitmap("data/sprites/asteroid-small-270.png")) == NULL)
+  if((asteroids.asteroid_small_270 = al_load_bitmap("data/sprites/asteroid/small/270.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-small-270.png\n");
 
   return true;
