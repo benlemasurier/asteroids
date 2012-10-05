@@ -587,12 +587,8 @@ draw_ship(SHIP *ship, bool thrusting)
   /* this creates a flashing thrust visualization
    * not _exactly_ like the original (too fast), but close. (FIXME) */
   sprite = ship->sprite;
-  if(thrusting && !ship->thrust_visible) {
+  if(thrusting && !ship->thrust_visible)
     sprite = ship->thrust_sprite;
-    ship->thrust_visible = true;
-  } else {
-    ship->thrust_visible = false;
-  }
 
   al_draw_rotated_bitmap(
       sprite,
@@ -601,6 +597,8 @@ draw_ship(SHIP *ship, bool thrusting)
       ship->position->x,
       ship->position->y,
       deg2rad(ship->angle), 0);
+
+  ship->thrust_visible = (ship->thrust_visible) ? false : true;
 }
 
 static void
