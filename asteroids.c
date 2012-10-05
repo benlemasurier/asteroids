@@ -114,6 +114,8 @@ struct asteroids {
   ALLEGRO_DISPLAY *display;
   ALLEGRO_EVENT_QUEUE *event_queue;
 
+  ALLEGRO_BITMAP *explosion[15];
+
   ALLEGRO_BITMAP *lives_sprite;
   ALLEGRO_BITMAP *asteroid_large;
   ALLEGRO_BITMAP *asteroid_large_90;
@@ -203,6 +205,13 @@ preload_asteroid_sprites(void)
     fprintf(stderr, "failed to load asteroid-small-180.png\n");
   if((asteroids.asteroid_small_270 = al_load_bitmap("data/sprites/asteroid/small/270.png")) == NULL)
     fprintf(stderr, "failed to load asteroid-small-270.png\n");
+
+  for(int i = 0; i < 15; i++) {
+    char name[255];
+    sprintf(name, "data/sprites/asteroid/explosion/%d.png", i + 1);
+    if((asteroids.explosion[i] = al_load_bitmap(name)) == NULL)
+      fprintf(stderr, "failed to load explosion sprite %d\n", i);
+  }
 
   return true;
 }
@@ -443,63 +452,6 @@ free_asteroid(ASTEROID *asteroid)
   asteroid = NULL;
 }
 
-static void
-explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
-{
-  int i, j;
-  VECTOR position;
-  LEVEL *level = asteroids.level;
-
-  missile->active = false;
-  asteroids.score += asteroid->points;
-
-  position.x = asteroid->position->x;
-  position.y = asteroid->position->y;
-
-  if(asteroid->size == ASTEROID_SMALL) {
-    ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
-
-    for(i = 0, j = 0; i < level->n_asteroids; i++) {
-      if(level->asteroids[i] != asteroid) {
-        temp[j] = level->asteroids[i];
-        j++;
-      }
-    }
-
-    free_asteroid(asteroid);
-    free(level->asteroids);
-    level->asteroids = temp;
-    level->n_asteroids--;
-
-    return;
-  }
-
-  /* find the asteroid to destory in the level */
-  for(i = 0; i < level->n_asteroids; i++)
-    if(level->asteroids[i] == asteroid)
-      break;
-
-  level->n_asteroids++;
-  level->asteroids = (ASTEROID **) realloc(level->asteroids, sizeof(ASTEROID *) * level->n_asteroids);
-  if(level->asteroids == NULL)
-    fprintf(stderr, "unable to reallocate memory\n");
-
-  /* replace the destroyed asteroid */
-  free_asteroid(asteroid);
-  if(asteroid->size == ASTEROID_LARGE) {
-    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_MEDIUM);
-    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_MEDIUM);
-  } else {
-    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_SMALL);
-    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_SMALL);
-  }
-
-  asteroids.level->asteroids[i]->position->x = position.x;
-  asteroids.level->asteroids[i]->position->y = position.y;
-  asteroids.level->asteroids[level->n_asteroids - 1]->position->x = position.x;
-  asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
-}
-
 static LEVEL *
 create_level(int n_asteroids)
 {
@@ -614,6 +566,18 @@ draw_missile(MISSILE *missile)
 }
 
 static void
+draw_explosion(ASTEROID *asteroid)
+{
+  for(int i = 0; i < 15; i++) {
+    al_draw_bitmap(
+        asteroids.explosion[i],
+        asteroid->position->x - (asteroid->width  / 2),
+        asteroid->position->y - (asteroid->height / 2),
+        0);
+  }
+}
+
+static void
 draw_score(void)
 {
   char score[20];
@@ -695,6 +659,65 @@ missile_collision(MISSILE *missile, ASTEROID *asteroid)
 
   return collision(missile_x, missile_y, missile->width, missile->height,
       rock_x, rock_y, asteroid->width, asteroid->height);
+}
+
+static void
+explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
+{
+  int i, j;
+  VECTOR position;
+  LEVEL *level = asteroids.level;
+
+  missile->active = false;
+  asteroids.score += asteroid->points;
+
+  draw_explosion(asteroid);
+
+  position.x = asteroid->position->x;
+  position.y = asteroid->position->y;
+
+  if(asteroid->size == ASTEROID_SMALL) {
+    ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
+
+    for(i = 0, j = 0; i < level->n_asteroids; i++) {
+      if(level->asteroids[i] != asteroid) {
+        temp[j] = level->asteroids[i];
+        j++;
+      }
+    }
+
+    free_asteroid(asteroid);
+    free(level->asteroids);
+    level->asteroids = temp;
+    level->n_asteroids--;
+
+    return;
+  }
+
+  /* find the asteroid to destory in the level */
+  for(i = 0; i < level->n_asteroids; i++)
+    if(level->asteroids[i] == asteroid)
+      break;
+
+  level->n_asteroids++;
+  level->asteroids = (ASTEROID **) realloc(level->asteroids, sizeof(ASTEROID *) * level->n_asteroids);
+  if(level->asteroids == NULL)
+    fprintf(stderr, "unable to reallocate memory\n");
+
+  /* replace the destroyed asteroid */
+  free_asteroid(asteroid);
+  if(asteroid->size == ASTEROID_LARGE) {
+    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_MEDIUM);
+    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_MEDIUM);
+  } else {
+    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_SMALL);
+    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_SMALL);
+  }
+
+  asteroids.level->asteroids[i]->position->x = position.x;
+  asteroids.level->asteroids[i]->position->y = position.y;
+  asteroids.level->asteroids[level->n_asteroids - 1]->position->x = position.x;
+  asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
 }
 
 static void
@@ -785,7 +808,7 @@ main(void)
       /* ship->asteroid collisions. */
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i]))
-          printf("ZOMG COLLISION!!!\n");
+          printf("ZOMG collision\n");
 
       /* missile->asteroid collisions. FIXME: who made this mess? */
       for(int i = 0; i < MAX_MISSILES; i++) {
