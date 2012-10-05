@@ -549,18 +549,10 @@ free_missile(MISSILE *missile)
   if(missile == NULL)
     return;
 
-  if(missile->position != NULL)
-    free(missile->position);
-  if(missile->velocity != NULL)
-    free(missile->velocity);
-
-  if(missile->sprite != NULL) {
-    al_destroy_bitmap(missile->sprite);
-    missile->sprite = NULL;
-  }
-
-  if(missile != NULL)
-    free(missile);
+  free(missile->position);
+  free(missile->velocity);
+  al_destroy_bitmap(missile->sprite);
+  free(missile);
 
   missile = NULL;
 }
