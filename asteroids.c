@@ -862,9 +862,6 @@ main(int argc, char **argv)
       draw_high_score();
       draw_lives();
       draw_ship(asteroids.ship, key[KEY_UP]);
-      for(int i = 0; i < MAX_MISSILES; i++)
-        if(asteroids.ship->missiles[i]->active)
-          draw_missile(asteroids.ship->missiles[i]);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         draw_asteroid(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)
