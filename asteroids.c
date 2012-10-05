@@ -130,7 +130,7 @@ struct asteroids {
 } asteroids;
 
 static void
-shutdown()
+shutdown(void)
 {
   /* FIXME: why can't I cleanly access asteroids.timer,display,etc here? */
   printf("shutdown.\n");
@@ -278,7 +278,7 @@ init(void)
 }
 
 static MISSILE *
-create_missile(SHIP *ship)
+create_missile(void)
 {
   MISSILE *missile  = malloc(sizeof(MISSILE));
   missile->position = malloc(sizeof(VECTOR));
@@ -332,7 +332,7 @@ create_ship(void)
   ship->thrust_visible = false;
 
   for(int i = 0; i < MAX_MISSILES; i++)
-    ship->missiles[i] = create_missile(ship);
+    ship->missiles[i] = create_missile();
 
   return ship;
 }
@@ -446,7 +446,7 @@ free_asteroid(ASTEROID *asteroid)
 static void
 explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
 {
-  int i;
+  int i, j;
   VECTOR position;
   LEVEL *level = asteroids.level;
 
@@ -456,15 +456,10 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
   position.x = asteroid->position->x;
   position.y = asteroid->position->y;
 
-  /* find the asteroid to destory in the level */
-  for(i = 0; i < level->n_asteroids; i++)
-    if(level->asteroids[i] == asteroid)
-      break;
-
   if(asteroid->size == ASTEROID_SMALL) {
     ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
 
-    for(int i = 0, j = 0; i < level->n_asteroids; i++) {
+    for(i = 0, j = 0; i < level->n_asteroids; i++) {
       if(level->asteroids[i] != asteroid) {
         temp[j] = level->asteroids[i];
         j++;
@@ -478,6 +473,11 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
 
     return;
   }
+
+  /* find the asteroid to destory in the level */
+  for(i = 0; i < level->n_asteroids; i++)
+    if(level->asteroids[i] == asteroid)
+      break;
 
   level->n_asteroids++;
   level->asteroids = (ASTEROID **) realloc(level->asteroids, sizeof(ASTEROID *) * level->n_asteroids);
@@ -730,7 +730,7 @@ update_missile(MISSILE *missile)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
   asteroids.score       = 0;
   asteroids.lives       = START_LIVES;
