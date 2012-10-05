@@ -29,6 +29,7 @@ contributing
 ============
 
 patches welcome! compile with the following flags before submitting a request:
+
     -std=c99
     -Wall
     -Wextra
