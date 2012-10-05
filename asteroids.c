@@ -461,28 +461,7 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
     if(level->asteroids[i] == asteroid)
       break;
 
-  if(asteroid->size != ASTEROID_SMALL) {
-    level->n_asteroids++;
-    level->asteroids = (ASTEROID **) realloc(level->asteroids, sizeof(ASTEROID *) * level->n_asteroids);
-    if(level->asteroids == NULL)
-      fprintf(stderr, "unable to reallocate memory\n");
-
-    /* replace the destroyed asteroid */
-    free_asteroid(asteroid);
-    if(asteroid->size == ASTEROID_LARGE) {
-      asteroids.level->asteroids[i] = create_asteroid(ASTEROID_MEDIUM);
-      asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_MEDIUM);
-    } else {
-      asteroids.level->asteroids[i] = create_asteroid(ASTEROID_SMALL);
-      asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_SMALL);
-    }
-
-    asteroids.level->asteroids[i]->position->x = position.x;
-    asteroids.level->asteroids[i]->position->y = position.y;
-    asteroids.level->asteroids[level->n_asteroids - 1]->position->x = position.x;
-    asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
-    return;
-  } else {
+  if(asteroid->size == ASTEROID_SMALL) {
     ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
 
     for(int i = 0, j = 0; i < level->n_asteroids; i++) {
@@ -499,6 +478,26 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
 
     return;
   }
+
+  level->n_asteroids++;
+  level->asteroids = (ASTEROID **) realloc(level->asteroids, sizeof(ASTEROID *) * level->n_asteroids);
+  if(level->asteroids == NULL)
+    fprintf(stderr, "unable to reallocate memory\n");
+
+  /* replace the destroyed asteroid */
+  free_asteroid(asteroid);
+  if(asteroid->size == ASTEROID_LARGE) {
+    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_MEDIUM);
+    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_MEDIUM);
+  } else {
+    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_SMALL);
+    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_SMALL);
+  }
+
+  asteroids.level->asteroids[i]->position->x = position.x;
+  asteroids.level->asteroids[i]->position->y = position.y;
+  asteroids.level->asteroids[level->n_asteroids - 1]->position->x = position.x;
+  asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
 }
 
 static LEVEL *
