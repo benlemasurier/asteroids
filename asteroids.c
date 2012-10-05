@@ -95,6 +95,11 @@ typedef struct asteroid_t {
   ALLEGRO_BITMAP *sprite;
 } ASTEROID;
 
+typedef struct explosion_t {
+  uint8_t current_frame;
+  VECTOR *position;
+} EXPLOSION;
+
 typedef struct level_t {
   int n_asteroids;
   ASTEROID **asteroids;
@@ -108,13 +113,16 @@ struct asteroids {
   SHIP  *ship;
   LEVEL *level;
 
+  uint8_t   n_explosions;
+  EXPLOSION **explosions;
+
   ALLEGRO_FONT    *small_font;
   ALLEGRO_FONT    *large_font;
   ALLEGRO_TIMER   *timer;
   ALLEGRO_DISPLAY *display;
   ALLEGRO_EVENT_QUEUE *event_queue;
 
-  ALLEGRO_BITMAP *explosion[15];
+  ALLEGRO_BITMAP *explosion_sprites[15];
 
   ALLEGRO_BITMAP *lives_sprite;
   ALLEGRO_BITMAP *asteroid_large;
@@ -209,7 +217,7 @@ preload_asteroid_sprites(void)
   for(int i = 0; i < 15; i++) {
     char name[255];
     sprintf(name, "data/sprites/asteroid/explosion/%d.png", i + 1);
-    if((asteroids.explosion[i] = al_load_bitmap(name)) == NULL)
+    if((asteroids.explosion_sprites[i] = al_load_bitmap(name)) == NULL)
       fprintf(stderr, "failed to load explosion sprite %d\n", i);
   }
 
@@ -452,6 +460,14 @@ free_asteroid(ASTEROID *asteroid)
   asteroid = NULL;
 }
 
+static void
+free_explosion(EXPLOSION *explosion)
+{
+  free(explosion->position);
+  free(explosion);
+  explosion = NULL;
+}
+
 static LEVEL *
 create_level(int n_asteroids)
 {
@@ -463,6 +479,40 @@ create_level(int n_asteroids)
     level->asteroids[i] = create_asteroid(ASTEROID_LARGE);
 
   return level;
+}
+
+static void
+new_explosion(VECTOR *position)
+{
+  EXPLOSION *explosion = malloc(sizeof(EXPLOSION));
+  explosion->current_frame = 0;
+  explosion->position = malloc(sizeof(VECTOR));
+
+  explosion->position->x = position->x;
+  explosion->position->y = position->y;
+
+  asteroids.n_explosions++;
+  asteroids.explosions = (EXPLOSION **) realloc(asteroids.explosions, sizeof(EXPLOSION *) * asteroids.n_explosions);
+  asteroids.explosions[asteroids.n_explosions - 1] = explosion;
+}
+
+static void
+remove_explosion(EXPLOSION *explosion)
+{
+  EXPLOSION **temp = malloc(sizeof(EXPLOSION *) * asteroids.n_explosions - 1);
+  for(int i = 0, j = 0; i < asteroids.n_explosions; i++) {
+    if(asteroids.explosions[i] != explosion) {
+      temp[j] = asteroids.explosions[i];
+      j++;
+    }
+  }
+
+
+  free(asteroids.explosions);
+  asteroids.explosions = temp;
+  asteroids.n_explosions--;
+
+  free_explosion(explosion);
 }
 
 static void
@@ -566,15 +616,15 @@ draw_missile(MISSILE *missile)
 }
 
 static void
-draw_explosion(ASTEROID *asteroid)
+draw_explosion(EXPLOSION *explosion)
 {
-  for(int i = 0; i < 15; i++) {
-    al_draw_bitmap(
-        asteroids.explosion[i],
-        asteroid->position->x - (asteroid->width  / 2),
-        asteroid->position->y - (asteroid->height / 2),
-        0);
-  }
+  al_draw_bitmap(
+      asteroids.explosion_sprites[explosion->current_frame],
+      explosion->position->x,
+      explosion->position->y,
+      0);
+
+  explosion->current_frame++;
 }
 
 static void
@@ -671,7 +721,7 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
   missile->active = false;
   asteroids.score += asteroid->points;
 
-  draw_explosion(asteroid);
+  new_explosion(asteroid->position);
 
   position.x = asteroid->position->x;
   position.y = asteroid->position->y;
@@ -831,6 +881,9 @@ main(void)
       for(int i = 0; i < MAX_MISSILES; i++)
         if(asteroids.ship->missiles[i]->active)
           update_missile(asteroids.ship->missiles[i]);
+      for(int i = 0; i < asteroids.n_explosions; i++)
+        if(asteroids.explosions[i]->current_frame > 14)
+          remove_explosion(asteroids.explosions[i]);
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -882,6 +935,8 @@ main(void)
       for(int i = 0; i < MAX_MISSILES; i++)
         if(asteroids.ship->missiles[i]->active)
           draw_missile(asteroids.ship->missiles[i]);
+      for(int i = 0; i < asteroids.n_explosions; i++)
+        draw_explosion(asteroids.explosions[i]);
 
       al_flip_display();
     }
