@@ -96,6 +96,9 @@ typedef struct asteroid_t {
 } ASTEROID;
 
 typedef struct explosion_t {
+  uint8_t width;
+  uint8_t height;
+  uint8_t frame_played;
   uint8_t current_frame;
   VECTOR *position;
 } EXPLOSION;
@@ -485,11 +488,14 @@ static void
 new_explosion(VECTOR *position)
 {
   EXPLOSION *explosion = malloc(sizeof(EXPLOSION));
+  explosion->width  = al_get_bitmap_width(asteroids.explosion_sprites[0]);
+  explosion->height = al_get_bitmap_height(asteroids.explosion_sprites[0]);
+  explosion->frame_played  = 0;
   explosion->current_frame = 0;
   explosion->position = malloc(sizeof(VECTOR));
 
-  explosion->position->x = position->x;
-  explosion->position->y = position->y;
+  explosion->position->x = position->x - (explosion->width  / 2);
+  explosion->position->y = position->y - (explosion->height / 2);
 
   asteroids.n_explosions++;
   asteroids.explosions = (EXPLOSION **) realloc(asteroids.explosions, sizeof(EXPLOSION *) * asteroids.n_explosions);
@@ -624,7 +630,14 @@ draw_explosion(EXPLOSION *explosion)
       explosion->position->y,
       0);
 
-  explosion->current_frame++;
+  /* slow down explosion playback by rendering
+   * each frame multiple times */
+  if(explosion->frame_played < 4) {
+    explosion->frame_played++;
+  } else {
+    explosion->current_frame++;
+    explosion->frame_played = 0;
+  }
 }
 
 static void
@@ -721,7 +734,7 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
   missile->active = false;
   asteroids.score += asteroid->points;
 
-  new_explosion(asteroid->position);
+  new_explosion(missile->position);
 
   position.x = asteroid->position->x;
   position.y = asteroid->position->y;
