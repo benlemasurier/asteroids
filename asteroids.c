@@ -536,15 +536,10 @@ launch_missile(SHIP *ship, MISSILE *missile)
 static void
 free_ship(SHIP *ship)
 {
-  if(ship->position != NULL)
-    free(ship->position);
-  if(ship->velocity != NULL)
-    free(ship->velocity);
-
-  if(ship->sprite != NULL)
-    al_destroy_bitmap(ship->sprite);
-  if(ship != NULL)
-    free(ship);
+  free(ship->position);
+  free(ship->velocity);
+  al_destroy_bitmap(ship->sprite);
+  free(ship);
 
   ship = NULL;
 }
@@ -552,9 +547,6 @@ free_ship(SHIP *ship)
 static void
 free_missile(MISSILE *missile)
 {
-  if(missile == NULL)
-    return;
-
   free(missile->position);
   free(missile->velocity);
   al_destroy_bitmap(missile->sprite);
