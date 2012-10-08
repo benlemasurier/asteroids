@@ -111,13 +111,22 @@ typedef struct asteroid_t {
   ALLEGRO_BITMAP *sprite;
 } ASTEROID;
 
-typedef struct explosion_t {
+typedef struct animation_t {
   uint8_t width;
   uint8_t height;
-  uint8_t frame_played;
-  uint8_t current_frame;
   VECTOR *position;
-} EXPLOSION;
+
+  size_t  n_frames;
+  size_t  current_frame;
+
+  /* slowdown factor, play each frame `slowdown` times */
+  uint8_t slowdown;
+
+  /* how many times has the current frame been played? */
+  uint8_t frame_played;
+
+  ALLEGRO_BITMAP **sprites;
+} ANIMATION;
 
 typedef struct level_t {
   int n_asteroids;
@@ -133,7 +142,7 @@ struct asteroids {
   LEVEL *level;
 
   uint8_t   n_explosions;
-  EXPLOSION **explosions;
+  ANIMATION **explosions;
 
   ALLEGRO_FONT    *small_font;
   ALLEGRO_FONT    *large_font;
@@ -466,11 +475,11 @@ free_asteroid(ASTEROID *asteroid)
 }
 
 static void
-free_explosion(EXPLOSION *explosion)
+free_animation(ANIMATION *animation)
 {
-  free(explosion->position);
-  free(explosion);
-  explosion = NULL;
+  free(animation->position);
+  free(animation);
+  animation = NULL;
 }
 
 static LEVEL *
@@ -486,28 +495,45 @@ create_level(int n_asteroids)
   return level;
 }
 
+static ANIMATION *
+new_animation(ALLEGRO_BITMAP **sprites, size_t n_frames)
+{
+  ANIMATION *animation = malloc(sizeof(ANIMATION));
+
+  animation->width  = al_get_bitmap_width(sprites[0]);
+  animation->height = al_get_bitmap_height(sprites[0]);
+  animation->current_frame = 0;
+  animation->frame_played  = 0;
+  animation->slowdown      = 1;
+
+  animation->position      = malloc(sizeof(VECTOR));
+  animation->position->x   = 0;
+  animation->position->y   = 0;
+
+  animation->n_frames = n_frames;
+  animation->sprites  = sprites;
+
+  return animation;
+}
+
 static void
 new_explosion(VECTOR *position)
 {
-  EXPLOSION *explosion = malloc(sizeof(EXPLOSION));
-  explosion->width  = al_get_bitmap_width(asteroids.explosion_sprites[0]);
-  explosion->height = al_get_bitmap_height(asteroids.explosion_sprites[0]);
-  explosion->frame_played  = 0;
-  explosion->current_frame = 0;
-  explosion->position = malloc(sizeof(VECTOR));
+  ANIMATION *explosion = new_animation(asteroids.explosion_sprites, 15);
 
+  explosion->slowdown = 2;
   explosion->position->x = position->x - (explosion->width  / 2);
   explosion->position->y = position->y - (explosion->height / 2);
 
   asteroids.n_explosions++;
-  asteroids.explosions = (EXPLOSION **) realloc(asteroids.explosions, sizeof(EXPLOSION *) * asteroids.n_explosions);
+  asteroids.explosions = (ANIMATION **) realloc(asteroids.explosions, sizeof(ANIMATION *) * asteroids.n_explosions);
   asteroids.explosions[asteroids.n_explosions - 1] = explosion;
 }
 
 static void
-remove_explosion(EXPLOSION *explosion)
+remove_explosion(ANIMATION *explosion)
 {
-  EXPLOSION **temp = malloc(sizeof(EXPLOSION *) * asteroids.n_explosions - 1);
+  ANIMATION **temp = malloc(sizeof(ANIMATION *) * asteroids.n_explosions - 1);
   for(int i = 0, j = 0; i < asteroids.n_explosions; i++) {
     if(asteroids.explosions[i] != explosion) {
       temp[j] = asteroids.explosions[i];
@@ -515,12 +541,11 @@ remove_explosion(EXPLOSION *explosion)
     }
   }
 
-
   free(asteroids.explosions);
   asteroids.explosions = temp;
   asteroids.n_explosions--;
 
-  free_explosion(explosion);
+  free_animation(explosion);
 }
 
 static void
@@ -616,22 +641,16 @@ draw_missile(MISSILE *missile)
 }
 
 static void
-draw_explosion(EXPLOSION *explosion)
+draw_animation(ANIMATION *animation)
 {
-  al_draw_bitmap(
-      asteroids.explosion_sprites[explosion->current_frame],
-      explosion->position->x,
-      explosion->position->y,
-      0);
+  if(animation->current_frame >= animation->n_frames)
+    return;
 
-  /* slow down explosion playback by rendering
-   * each frame multiple times */
-  if(explosion->frame_played < 3) {
-    explosion->frame_played++;
-  } else {
-    explosion->current_frame++;
-    explosion->frame_played = 0;
-  }
+  al_draw_bitmap(
+      animation->sprites[animation->current_frame],
+      animation->position->x,
+      animation->position->y,
+      0);
 }
 
 static void
@@ -798,6 +817,21 @@ update_missile(MISSILE *missile)
   wrap_position(missile->position);
 }
 
+static void
+update_animation(ANIMATION *animation)
+{
+  /* slow down animation playback by rendering
+   * each frame multiple times */
+  if(animation->frame_played < animation->slowdown) {
+    animation->frame_played++;
+
+    return;
+  }
+
+  animation->current_frame++;
+  animation->frame_played = 0;
+}
+
 int
 main(void)
 {
@@ -881,7 +915,9 @@ main(void)
         if(asteroids.ship->missiles[i]->active)
           update_missile(asteroids.ship->missiles[i]);
       for(int i = 0; i < asteroids.n_explosions; i++)
-        if(asteroids.explosions[i]->current_frame > 14)
+        if(asteroids.explosions[i]->current_frame < asteroids.explosions[i]->n_frames)
+          update_animation(asteroids.explosions[i]);
+        else
           remove_explosion(asteroids.explosions[i]);
 
       redraw = true;
@@ -935,7 +971,7 @@ main(void)
         if(asteroids.ship->missiles[i]->active)
           draw_missile(asteroids.ship->missiles[i]);
       for(int i = 0; i < asteroids.n_explosions; i++)
-        draw_explosion(asteroids.explosions[i]);
+        draw_animation(asteroids.explosions[i]);
 
       al_flip_display();
     }
