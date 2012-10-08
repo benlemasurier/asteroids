@@ -622,7 +622,7 @@ draw_explosion(EXPLOSION *explosion)
 
   /* slow down explosion playback by rendering
    * each frame multiple times */
-  if(explosion->frame_played < 4) {
+  if(explosion->frame_played < 3) {
     explosion->frame_played++;
   } else {
     explosion->current_frame++;
