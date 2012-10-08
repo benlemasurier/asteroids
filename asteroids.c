@@ -43,6 +43,8 @@
 #define ASTEROID_MEDIUM_POINTS 50
 #define ASTEROID_SMALL_POINTS  100
 
+const int DRAWING_FLAGS = 0;
+
 enum CONTROLS {
   KEY_UP,    /* thrust */
   KEY_LEFT,  /* rotate left */
@@ -649,14 +651,30 @@ draw_animation(ANIMATION *animation)
       animation->sprites[animation->current_frame],
       animation->position->x,
       animation->position->y,
-      0);
+      DRAWING_FLAGS);
+}
+
+static void
+draw_rotated_animation(ANIMATION *animation, float angle)
+{
+  if(animation->current_frame >= animation->n_frames)
+    return;
+
+  al_draw_rotated_bitmap(
+      animation->sprites[animation->current_frame],
+      animation->width / 2,
+      animation->height / 2,
+      animation->position->x,
+      animation->position->y,
+      deg2rad(angle),
+      DRAWING_FLAGS);
 }
 
 static void
 draw_ship(SHIP *ship, bool thrusting)
 {
   if(ship->explosion != NULL) {
-    draw_animation(ship->explosion);
+    draw_rotated_animation(ship->explosion, ship->angle);
     return;
   }
 
@@ -674,7 +692,8 @@ draw_ship(SHIP *ship, bool thrusting)
       ship->height / 2,
       ship->position->x,
       ship->position->y,
-      deg2rad(ship->angle), 0);
+      deg2rad(ship->angle),
+      DRAWING_FLAGS);
 
   ship->thrust_visible = (ship->thrust_visible) ? false : true;
 }
@@ -686,7 +705,7 @@ draw_asteroid(ASTEROID *asteroid)
       asteroid->sprite,
       asteroid->position->x - (asteroid->width  / 2),
       asteroid->position->y - (asteroid->height / 2),
-      0);
+      DRAWING_FLAGS);
 }
 
 static void
@@ -696,7 +715,7 @@ draw_missile(MISSILE *missile)
       missile->sprite,
       missile->position->x - (missile->width  / 2),
       missile->position->y - (missile->height / 2),
-      0);
+      DRAWING_FLAGS);
 }
 
 static void
@@ -737,7 +756,7 @@ draw_lives(void)
         asteroids.lives_sprite,
         LIVES_X + (width * i),
         LIVES_Y,
-        0);
+        DRAWING_FLAGS);
 }
 
 static bool
