@@ -70,6 +70,23 @@ typedef struct vector_t {
   float y;
 } VECTOR;
 
+typedef struct animation_t {
+  uint8_t width;
+  uint8_t height;
+  VECTOR *position;
+
+  size_t  n_frames;
+  size_t  current_frame;
+
+  /* slowdown factor, play each frame `slowdown` times */
+  uint8_t slowdown;
+
+  /* how many times has the current frame been played? */
+  uint8_t frame_played;
+
+  ALLEGRO_BITMAP **sprites;
+} ANIMATION;
+
 typedef struct missile_t {
   int width;
   int height;
@@ -94,6 +111,8 @@ typedef struct ship_t {
   VECTOR *position;
   VECTOR *velocity;
 
+  ANIMATION *explosion;
+
   ALLEGRO_BITMAP *sprite;
   ALLEGRO_BITMAP *thrust_sprite;
 } SHIP;
@@ -110,23 +129,6 @@ typedef struct asteroid_t {
 
   ALLEGRO_BITMAP *sprite;
 } ASTEROID;
-
-typedef struct animation_t {
-  uint8_t width;
-  uint8_t height;
-  VECTOR *position;
-
-  size_t  n_frames;
-  size_t  current_frame;
-
-  /* slowdown factor, play each frame `slowdown` times */
-  uint8_t slowdown;
-
-  /* how many times has the current frame been played? */
-  uint8_t frame_played;
-
-  ALLEGRO_BITMAP **sprites;
-} ANIMATION;
 
 typedef struct level_t {
   int n_asteroids;
@@ -150,9 +152,12 @@ struct asteroids {
   ALLEGRO_DISPLAY *display;
   ALLEGRO_EVENT_QUEUE *event_queue;
 
+  ALLEGRO_BITMAP *ship_sprite;
+  ALLEGRO_BITMAP *ship_thrust_sprite;
+  ALLEGRO_BITMAP *lives_sprite;
   ALLEGRO_BITMAP *asteroid_sprites[12];
   ALLEGRO_BITMAP *explosion_sprites[15];
-  ALLEGRO_BITMAP *lives_sprite;
+  ALLEGRO_BITMAP *ship_explosion_sprites[10];
 } asteroids;
 
 static void
@@ -238,6 +243,32 @@ preload_asteroid_sprites(void)
 }
 
 static bool
+preload_ship_sprites(void)
+{
+  if((asteroids.ship_sprite = al_load_bitmap("data/sprites/ship.png")) == NULL) {
+    fprintf(stderr, "failed to load ship sprite\n");
+    return false;
+  }
+
+  if((asteroids.ship_thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png")) == NULL) {
+    fprintf(stderr, "failed to load ship thrust sprite\n");
+    return false;
+  }
+
+  /* ship explosion animation frames */
+  for(int i = 0; i < 10; i++) {
+    char name[255];
+    sprintf(name, "data/sprites/ship/explosion/%d.png", i + 1);
+    if((asteroids.ship_explosion_sprites[i] = al_load_bitmap(name)) == NULL) {
+      fprintf(stderr, "failed to load ship explosion sprite %d\n", i);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static bool
 init(void)
 {
   if(!al_init()) {
@@ -272,11 +303,11 @@ init(void)
     return false;
   }
 
-  /* preload asteroid sprites */
-  if(!preload_asteroid_sprites()) {
-    fprintf(stderr, "failed to preload asteroid spritse\n");
+  /* sprite preloading */
+  if(!preload_ship_sprites())
     return false;
-  }
+  if(!preload_asteroid_sprites())
+    return false;
 
   asteroids.timer = al_create_timer(1.0 / FPS);
   if(!asteroids.timer) {
@@ -340,17 +371,8 @@ create_ship(void)
   ship->position = malloc(sizeof(VECTOR));
   ship->velocity = malloc(sizeof(VECTOR));
 
-  ship->sprite = al_load_bitmap("data/sprites/ship.png");
-  if(!ship->sprite) {
-    fprintf(stderr, "failed to create ship sprite.\n");
-    return NULL;
-  }
-
-  ship->thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png");
-  if(!ship->sprite) {
-    fprintf(stderr, "failed to create ship (thrust) sprite.\n");
-    return NULL;
-  }
+  ship->sprite = asteroids.ship_sprite;
+  ship->thrust_sprite = asteroids.ship_thrust_sprite;
 
   ship->width       = al_get_bitmap_width(ship->sprite);
   ship->height      = al_get_bitmap_height(ship->sprite);
@@ -359,6 +381,7 @@ create_ship(void)
   ship->velocity->y = 0.0;
   ship->position->x = SCREEN_W / 2;
   ship->position->y = SCREEN_H / 2;
+  ship->explosion   = NULL;
   ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
   ship->thrust_visible = false;
 
@@ -531,6 +554,22 @@ new_explosion(VECTOR *position)
 }
 
 static void
+ship_explode(SHIP *ship)
+{
+  if(ship->explosion != NULL)
+    return;
+
+  ANIMATION *explosion = new_animation(asteroids.ship_explosion_sprites, 10);
+
+  explosion->slowdown = 2;
+  explosion->position->x = ship->position->x - (explosion->width  / 2);
+  explosion->position->y = ship->position->y - (explosion->height / 2);
+
+  ship->explosion = explosion;
+  asteroids.lives--;
+}
+
+static void
 remove_explosion(ANIMATION *explosion)
 {
   ANIMATION **temp = malloc(sizeof(ANIMATION *) * asteroids.n_explosions - 1);
@@ -565,9 +604,11 @@ launch_missile(SHIP *ship, MISSILE *missile)
 static void
 free_ship(SHIP *ship)
 {
+  if(ship->explosion != NULL)
+    free_animation(ship->explosion);
+
   free(ship->position);
   free(ship->velocity);
-  al_destroy_bitmap(ship->sprite);
   free(ship);
 
   ship = NULL;
@@ -599,8 +640,26 @@ drag(SHIP *ship)
 }
 
 static void
+draw_animation(ANIMATION *animation)
+{
+  if(animation->current_frame >= animation->n_frames)
+    return;
+
+  al_draw_bitmap(
+      animation->sprites[animation->current_frame],
+      animation->position->x,
+      animation->position->y,
+      0);
+}
+
+static void
 draw_ship(SHIP *ship, bool thrusting)
 {
+  if(ship->explosion != NULL) {
+    draw_animation(ship->explosion);
+    return;
+  }
+
   ALLEGRO_BITMAP *sprite;
 
   /* this creates a flashing thrust visualization
@@ -637,19 +696,6 @@ draw_missile(MISSILE *missile)
       missile->sprite,
       missile->position->x - (missile->width  / 2),
       missile->position->y - (missile->height / 2),
-      0);
-}
-
-static void
-draw_animation(ANIMATION *animation)
-{
-  if(animation->current_frame >= animation->n_frames)
-    return;
-
-  al_draw_bitmap(
-      animation->sprites[animation->current_frame],
-      animation->position->x,
-      animation->position->y,
       0);
 }
 
@@ -738,15 +784,10 @@ missile_collision(MISSILE *missile, ASTEROID *asteroid)
 }
 
 static void
-explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
+explode_asteroid(ASTEROID *asteroid)
 {
   int i, j;
   LEVEL *level = asteroids.level;
-
-  missile->active = false;
-  asteroids.score += asteroid->points;
-
-  new_explosion(missile->position);
 
   if(asteroid->size == ASTEROID_SMALL) {
     ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
@@ -786,8 +827,46 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
 }
 
 static void
+missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
+{
+  missile->active = false;
+  asteroids.score += asteroid->points;
+
+  new_explosion(missile->position);
+  explode_asteroid(asteroid);
+}
+
+static void
+update_animation(ANIMATION *animation)
+{
+  /* slow down animation playback by rendering
+   * each frame multiple times */
+  if(animation->frame_played < animation->slowdown) {
+    animation->frame_played++;
+
+    return;
+  }
+
+  animation->current_frame++;
+  animation->frame_played = 0;
+}
+
+static void
 update_ship(SHIP *ship)
 {
+  if(ship->explosion != NULL) {
+    update_animation(ship->explosion);
+
+    /* if the animation is complete, create a new ship */
+    if(ship->explosion->current_frame >= ship->explosion->n_frames) {
+      free_ship(ship);
+      /* FIXME: need preemptive collision detection, wait() */
+      asteroids.ship = create_ship();
+    }
+
+    return;
+  }
+
   ship->position->x += ship->velocity->x;
   ship->position->y += ship->velocity->y;
   wrap_position(asteroids.ship->position);
@@ -815,21 +894,6 @@ update_missile(MISSILE *missile)
   missile->position->x += missile->velocity->x;
   missile->position->y += missile->velocity->y;
   wrap_position(missile->position);
-}
-
-static void
-update_animation(ANIMATION *animation)
-{
-  /* slow down animation playback by rendering
-   * each frame multiple times */
-  if(animation->frame_played < animation->slowdown) {
-    animation->frame_played++;
-
-    return;
-  }
-
-  animation->current_frame++;
-  animation->frame_played = 0;
 }
 
 int
@@ -889,16 +953,19 @@ main(void)
       }
 
       /* ship->asteroid collisions. */
-      for(int i = 0; i < asteroids.level->n_asteroids; i++)
-        if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i]))
-          printf("ZOMG collision\n");
+      for(int i = 0; i < asteroids.level->n_asteroids; i++) {
+        if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i])) {
+          explode_asteroid(asteroids.level->asteroids[i]);
+          ship_explode(asteroids.ship);
+        }
+      }
 
       /* missile->asteroid collisions. FIXME: who made this mess? */
       for(int i = 0; i < MAX_MISSILES; i++) {
         if(asteroids.ship->missiles[i]->active) {
           for(int j = 0; j < asteroids.level->n_asteroids; j++) {
             if(missile_collision(asteroids.ship->missiles[i], asteroids.level->asteroids[j])) {
-              explode_asteroid(asteroids.level->asteroids[j], asteroids.ship->missiles[i]);
+              missile_explode_asteroid(asteroids.ship->missiles[i], asteroids.level->asteroids[j]);
               i = 0;
               j = 0;
               continue;
@@ -991,6 +1058,9 @@ main(void)
     free_asteroid(asteroids.level->asteroids[i]);
   free_ship(asteroids.ship);
 
+  al_destroy_bitmap(asteroids.lives_sprite);
+  al_destroy_bitmap(asteroids.ship_sprite);
+  al_destroy_bitmap(asteroids.ship_thrust_sprite);
   al_destroy_bitmap(asteroids.asteroid_sprites[LARGE]);
   al_destroy_bitmap(asteroids.asteroid_sprites[LARGE_90]);
   al_destroy_bitmap(asteroids.asteroid_sprites[LARGE_180]);
