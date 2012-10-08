@@ -19,6 +19,22 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 
+#define FPS     60
+#define DRAG    0.99 
+
+#define SCREEN_W      800
+#define SCREEN_H      600
+#define ACCEL_SCALE   0.07
+#define MISSILE_SPEED 8
+#define MISSILE_TTL   1
+#define MAX_MISSILES  4
+#define START_LIVES   3
+#define LIVES_X       84
+#define LIVES_Y       60
+#define SCORE_X       130
+#define SCORE_Y       27
+#define HIGH_SCORE_Y  30
+
 #define ASTEROID_LARGE  0
 #define ASTEROID_MEDIUM 1
 #define ASTEROID_SMALL  2
@@ -26,21 +42,6 @@
 #define ASTEROID_LARGE_POINTS  20
 #define ASTEROID_MEDIUM_POINTS 50
 #define ASTEROID_SMALL_POINTS  100
-
-const float FPS           = 60;
-const int   SCREEN_W      = 800;
-const int   SCREEN_H      = 600;
-const float DRAG          = 0.99;
-const float ACCEL_SCALE   = 0.07;
-const float MISSILE_SPEED = 8;
-const float MISSILE_TTL   = 1;
-const int   MAX_MISSILES  = 4;
-const int   START_LIVES   = 3;
-const int   LIVES_X       = 84;
-const int   LIVES_Y       = 60;
-const int   SCORE_X       = 130;
-const int   SCORE_Y       = 27;
-const int   HIGH_SCORE_Y  = 30;
 
 enum CONTROLS {
   KEY_UP,    /* thrust */
