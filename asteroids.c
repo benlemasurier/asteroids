@@ -563,7 +563,7 @@ ship_explode(SHIP *ship)
 
   ANIMATION *explosion = new_animation(asteroids.ship_explosion_sprites, 10);
 
-  explosion->slowdown = 2;
+  explosion->slowdown = 5;
   explosion->position->x = ship->position->x - (explosion->width  / 2);
   explosion->position->y = ship->position->y - (explosion->height / 2);
 
