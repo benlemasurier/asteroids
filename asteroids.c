@@ -182,9 +182,6 @@ deg2rad(float deg)
 static float
 rand_f(float low, float high)
 {
-  struct timeval t;
-  gettimeofday(&t, NULL);
-  srand(t.tv_usec * t.tv_sec);
   return low + (float) rand() / ((float) RAND_MAX / (high - low));
 }
 
@@ -829,6 +826,9 @@ main(void)
   bool debounce = false; /* force button press for each fire */
   bool key[4]   = { false, false, false, false };
 
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  srand(t.tv_usec * t.tv_sec);
   atexit(shutdown);
 
   if(!init())
