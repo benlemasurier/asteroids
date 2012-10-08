@@ -35,9 +35,9 @@
 #define SCORE_Y       27
 #define HIGH_SCORE_Y  30
 
-#define ASTEROID_LARGE  0
+#define ASTEROID_LARGE  2
 #define ASTEROID_MEDIUM 1
-#define ASTEROID_SMALL  2
+#define ASTEROID_SMALL  0
 
 #define ASTEROID_LARGE_POINTS  20
 #define ASTEROID_MEDIUM_POINTS 50
@@ -718,16 +718,12 @@ static void
 explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
 {
   int i, j;
-  VECTOR position;
   LEVEL *level = asteroids.level;
 
   missile->active = false;
   asteroids.score += asteroid->points;
 
   new_explosion(missile->position);
-
-  position.x = asteroid->position->x;
-  position.y = asteroid->position->y;
 
   if(asteroid->size == ASTEROID_SMALL) {
     ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
@@ -754,20 +750,16 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
   if(level->asteroids == NULL)
     fprintf(stderr, "unable to reallocate memory\n");
 
-  /* replace the destroyed asteroid */
-  free_asteroid(asteroid);
-  if(asteroid->size == ASTEROID_LARGE) {
-    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_MEDIUM);
-    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_MEDIUM);
-  } else {
-    asteroids.level->asteroids[i] = create_asteroid(ASTEROID_SMALL);
-    asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(ASTEROID_SMALL);
-  }
+  /* replace the asteroid to be destroyed and create another */
+  asteroids.level->asteroids[i] = create_asteroid(asteroid->size - 1);
+  asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(asteroid->size - 1);
 
-  asteroids.level->asteroids[i]->position->x = position.x;
-  asteroids.level->asteroids[i]->position->y = position.y;
-  asteroids.level->asteroids[level->n_asteroids - 1]->position->x = position.x;
-  asteroids.level->asteroids[level->n_asteroids - 1]->position->y = position.y;
+  asteroids.level->asteroids[i]->position->x = asteroid->position->x;
+  asteroids.level->asteroids[i]->position->y = asteroid->position->y;
+  asteroids.level->asteroids[level->n_asteroids - 1]->position->x = asteroid->position->x;
+  asteroids.level->asteroids[level->n_asteroids - 1]->position->y = asteroid->position->y;
+
+  free_asteroid(asteroid);
 }
 
 static void
