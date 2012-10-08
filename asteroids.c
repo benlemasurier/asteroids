@@ -20,7 +20,7 @@
 #include <allegro5/allegro_ttf.h>
 
 #define FPS     60
-#define DRAG    0.99 
+#define DRAG    0.99
 
 #define SCREEN_W      800
 #define SCREEN_H      600
@@ -53,8 +53,8 @@ enum CONTROLS {
 enum {
   LARGE       = 0,
   LARGE_90    = 1,
-  LARGE_180  = 2,
-  LARGE_270  = 3,
+  LARGE_180   = 2,
+  LARGE_270   = 3,
   MEDIUM      = 4,
   MEDIUM_90   = 5,
   MEDIUM_180  = 6,
@@ -283,6 +283,7 @@ init(void)
     return false;
   }
 
+  /* TODO: show on mouse movement */
   al_hide_mouse_cursor(asteroids.display);
 
   asteroids.event_queue = al_create_event_queue();
