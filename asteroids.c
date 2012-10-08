@@ -732,12 +732,9 @@ explode_asteroid(ASTEROID *asteroid, MISSILE *missile)
   if(asteroid->size == ASTEROID_SMALL) {
     ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
 
-    for(i = 0, j = 0; i < level->n_asteroids; i++) {
-      if(level->asteroids[i] != asteroid) {
-        temp[j] = level->asteroids[i];
-        j++;
-      }
-    }
+    for(i = 0, j = 0; i < level->n_asteroids; i++)
+      if(level->asteroids[i] != asteroid)
+        temp[j] = level->asteroids[i], j++;
 
     free_asteroid(asteroid);
     free(level->asteroids);
