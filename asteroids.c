@@ -159,7 +159,7 @@ struct asteroids {
   ALLEGRO_BITMAP *lives_sprite;
   ALLEGRO_BITMAP *asteroid_sprites[12];
   ALLEGRO_BITMAP *explosion_sprites[15];
-  ALLEGRO_BITMAP *ship_explosion_sprites[10];
+  ALLEGRO_BITMAP *ship_explosion_sprites[60];
 } asteroids;
 
 static void
@@ -258,7 +258,7 @@ preload_ship_sprites(void)
   }
 
   /* ship explosion animation frames */
-  for(int i = 0; i < 10; i++) {
+  for(int i = 0; i < 60; i++) {
     char name[255];
     sprintf(name, "data/sprites/ship/explosion/%d.png", i + 1);
     if((asteroids.ship_explosion_sprites[i] = al_load_bitmap(name)) == NULL) {
@@ -561,9 +561,9 @@ ship_explode(SHIP *ship)
   if(ship->explosion != NULL)
     return;
 
-  ANIMATION *explosion = new_animation(asteroids.ship_explosion_sprites, 10);
+  ANIMATION *explosion = new_animation(asteroids.ship_explosion_sprites, 60);
 
-  explosion->slowdown = 5;
+  // explosion->slowdown = 10;
   explosion->position->x = ship->position->x - (explosion->width  / 2);
   explosion->position->y = ship->position->y - (explosion->height / 2);
 
