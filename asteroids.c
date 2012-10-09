@@ -46,10 +46,11 @@
 const int DRAWING_FLAGS = 0;
 
 enum CONTROLS {
-  KEY_UP,    /* thrust */
-  KEY_LEFT,  /* rotate left */
-  KEY_RIGHT, /* rotate right */
-  KEY_SPACE  /* fire ze missiles */
+  KEY_UP,      /* thrust */
+  KEY_LEFT,    /* rotate left */
+  KEY_RIGHT,   /* rotate right */
+  KEY_SPACE,   /* fire ze missiles */
+  KEY_LCONTROL /* HYPERSPACE! */
 };
 
 enum {
@@ -628,6 +629,15 @@ free_missile(MISSILE *missile)
 }
 
 static void
+hyperspace(SHIP *ship)
+{
+  ship->velocity->x = 0.0;
+  ship->velocity->y = 0.0;
+  ship->position->x = rand_f(0, SCREEN_W);
+  ship->position->y = rand_f(0, SCREEN_H);
+}
+
+static void
 accelerate(SHIP *ship)
 {
   ship->velocity->x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
@@ -908,10 +918,13 @@ main(void)
   asteroids.timer       = NULL;
   asteroids.event_queue = NULL;
 
-  bool redraw   = true;
-  bool quit     = false;
-  bool debounce = false; /* force button press for each fire */
-  bool key[4]   = { false, false, false, false };
+  bool redraw = true;
+  bool quit   = false;
+  bool key[5] = { false, false, false, false, false };
+
+  /* force full button press */
+  bool fire_debounce  = false;
+  bool hyper_debounce = false;
 
   struct timeval t;
   gettimeofday(&t, NULL);
@@ -944,12 +957,18 @@ main(void)
       if(key[KEY_RIGHT])
         rotate_ship(asteroids.ship, 3);
 
+      /* hyperspace */
+      if(key[KEY_LCONTROL] && !hyper_debounce) {
+        hyperspace(asteroids.ship);
+        hyper_debounce = true;
+      }
+
       /* shoot */
       if(key[KEY_SPACE]) {
         for(int i = 0; i < MAX_MISSILES; i++) {
-          if(!asteroids.ship->missiles[i]->active && !debounce) {
+          if(!asteroids.ship->missiles[i]->active && !fire_debounce) {
             launch_missile(asteroids.ship, asteroids.ship->missiles[i]);
-            debounce = true;
+            fire_debounce = true;
             break;
           }
         }
@@ -1006,6 +1025,9 @@ main(void)
         case ALLEGRO_KEY_SPACE:
           key[KEY_SPACE] = true;
           break;
+        case ALLEGRO_KEY_LCTRL:
+          key[KEY_LCONTROL] = true;
+          break;
       }
     } else if(ev.type == ALLEGRO_EVENT_KEY_UP) {
       switch(ev.keyboard.keycode) {
@@ -1020,7 +1042,11 @@ main(void)
           break;
         case ALLEGRO_KEY_SPACE:
           key[KEY_SPACE] = false;
-          debounce = false;
+          fire_debounce = false;
+          break;
+        case ALLEGRO_KEY_LCTRL:
+          key[KEY_LCONTROL] = false;
+          hyper_debounce = false;
           break;
         case ALLEGRO_KEY_ESCAPE:
           quit = true;
