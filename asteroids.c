@@ -655,26 +655,10 @@ draw_animation(ANIMATION *animation)
 }
 
 static void
-draw_rotated_animation(ANIMATION *animation, float angle)
-{
-  if(animation->current_frame >= animation->n_frames)
-    return;
-
-  al_draw_rotated_bitmap(
-      animation->sprites[animation->current_frame],
-      animation->width / 2,
-      animation->height / 2,
-      animation->position->x,
-      animation->position->y,
-      deg2rad(angle),
-      DRAWING_FLAGS);
-}
-
-static void
 draw_ship(SHIP *ship, bool thrusting)
 {
   if(ship->explosion != NULL) {
-    draw_rotated_animation(ship->explosion, ship->angle);
+    draw_animation(ship->explosion);
     return;
   }
 
@@ -974,6 +958,7 @@ main(void)
       /* ship->asteroid collisions. */
       for(int i = 0; i < asteroids.level->n_asteroids; i++) {
         if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i])) {
+          asteroids.score += asteroids.level->asteroids[i]->points;
           explode_asteroid(asteroids.level->asteroids[i]);
           ship_explode(asteroids.ship);
         }
