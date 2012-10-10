@@ -320,6 +320,12 @@ init(void)
     return false;
   }
 
+  asteroids.event_queue = al_create_event_queue();
+  if(!asteroids.event_queue) {
+    fprintf(stderr, "failed to create event queue.\n");
+    return false;
+  }
+
   al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
   al_set_new_display_option(ALLEGRO_SAMPLES,        8, ALLEGRO_SUGGEST);
   asteroids.display = al_create_display(SCREEN_W, SCREEN_H);
@@ -330,12 +336,6 @@ init(void)
 
   /* TODO: show on mouse movement */
   al_hide_mouse_cursor(asteroids.display);
-
-  asteroids.event_queue = al_create_event_queue();
-  if(!asteroids.event_queue) {
-    fprintf(stderr, "failed to create event queue.\n");
-    return false;
-  }
 
   al_register_event_source(asteroids.event_queue, al_get_display_event_source(asteroids.display));
   al_register_event_source(asteroids.event_queue, al_get_timer_event_source(asteroids.timer));
@@ -559,7 +559,7 @@ new_explosion(VECTOR *position)
 static void
 ship_explode(SHIP *ship)
 {
-  if(ship->explosion != NULL)
+  if(ship->explosion)
     return;
 
   ANIMATION *explosion = new_animation(asteroids.ship_explosion_sprites, 60);
@@ -887,7 +887,7 @@ update_animation(ANIMATION *animation)
 static void
 update_ship(SHIP *ship)
 {
-  if(ship->explosion != NULL) {
+  if(ship->explosion) {
     update_animation(ship->explosion);
 
     /* if the animation is complete, create a new ship */
@@ -929,6 +929,14 @@ update_missile(MISSILE *missile)
   wrap_position(missile->position);
 }
 
+static void
+seed_rand(void)
+{
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  srand(t.tv_usec * t.tv_sec);
+}
+
 int
 main(void)
 {
@@ -940,11 +948,9 @@ main(void)
 
   bool redraw = true;
   bool quit   = false;
-  bool key[5] = { false, false, false, false, false };
+  bool key[5] = { false };
 
-  struct timeval t;
-  gettimeofday(&t, NULL);
-  srand(t.tv_usec * t.tv_sec);
+  seed_rand();
   atexit(shutdown);
 
   if(!init())
