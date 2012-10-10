@@ -20,6 +20,7 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 
+#include "level.h"
 #include "asteroids.h"
 
 #define FPS     60
@@ -37,10 +38,6 @@
 #define SCORE_X       130
 #define SCORE_Y       27
 #define HIGH_SCORE_Y  30
-
-#define ASTEROID_LARGE  2
-#define ASTEROID_MEDIUM 1
-#define ASTEROID_SMALL  0
 
 #define ASTEROID_LARGE_POINTS  20
 #define ASTEROID_MEDIUM_POINTS 50
@@ -380,7 +377,7 @@ load_asteroid_sprite(uint8_t size, float angle)
   return sprite;
 }
 
-static ASTEROID *
+ASTEROID *
 create_asteroid(uint8_t size)
 {
   ASTEROID *asteroid = malloc(sizeof(ASTEROID));
@@ -437,19 +434,6 @@ free_animation(ANIMATION *animation)
   free(animation->position);
   free(animation);
   animation = NULL;
-}
-
-static LEVEL *
-create_level(int n_asteroids)
-{
-  LEVEL *level = malloc(sizeof(LEVEL));
-
-  level->n_asteroids = n_asteroids;
-  level->asteroids = malloc(sizeof(ASTEROID *) * n_asteroids);
-  for(int i = 0; i < n_asteroids; i++)
-    level->asteroids[i] = create_asteroid(ASTEROID_LARGE);
-
-  return level;
 }
 
 static ANIMATION *
