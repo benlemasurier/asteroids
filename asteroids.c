@@ -108,6 +108,7 @@ typedef struct ship_t {
   int height;
   bool thrust_visible;
   bool fire_debounce;
+  bool hyper_debounce;
 
   MISSILE **missiles;
 
@@ -646,6 +647,10 @@ free_missile(MISSILE *missile)
 static void
 hyperspace(SHIP *ship)
 {
+  if(ship->hyper_debounce)
+    return;
+
+  ship->hyper_debounce = true;
   ship->velocity->x = 0.0;
   ship->velocity->y = 0.0;
   ship->position->x = rand_f(0, SCREEN_W);
@@ -937,9 +942,6 @@ main(void)
   bool quit   = false;
   bool key[5] = { false, false, false, false, false };
 
-  /* force full button press */
-  bool hyper_debounce = false;
-
   struct timeval t;
   gettimeofday(&t, NULL);
   srand(t.tv_usec * t.tv_sec);
@@ -972,10 +974,8 @@ main(void)
         rotate_ship(asteroids.ship, 3);
 
       /* hyperspace */
-      if(key[KEY_LCONTROL] && !hyper_debounce) {
+      if(key[KEY_LCONTROL])
         hyperspace(asteroids.ship);
-        hyper_debounce = true;
-      }
 
       /* shoot */
       if(key[KEY_SPACE])
@@ -1053,7 +1053,7 @@ main(void)
           break;
         case ALLEGRO_KEY_LCTRL:
           key[KEY_LCONTROL] = false;
-          hyper_debounce = false;
+          asteroids.ship->hyper_debounce = false;
           break;
         case ALLEGRO_KEY_ESCAPE:
           quit = true;
