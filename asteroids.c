@@ -107,6 +107,7 @@ typedef struct ship_t {
   int width;
   int height;
   bool thrust_visible;
+  bool fire_debounce;
 
   MISSILE **missiles;
 
@@ -387,6 +388,7 @@ create_ship(void)
   ship->explosion   = NULL;
   ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
   ship->thrust_visible = false;
+  ship->fire_debounce  = false;
 
   for(int i = 0; i < MAX_MISSILES; i++)
     ship->missiles[i] = create_missile();
@@ -588,11 +590,27 @@ remove_explosion(ANIMATION *explosion)
 }
 
 static void
-launch_missile(SHIP *ship, MISSILE *missile)
+launch_missile(SHIP *ship)
 {
+  MISSILE *missile = NULL;
+
+  /* full button press required for each missile */
+  if(ship->fire_debounce)
+    return;
+
+  /* find an inactive missile to launch */
+  for(int i = 0; i < MAX_MISSILES && missile == NULL; i++)
+    if(!ship->missiles[i]->active)
+      missile = ship->missiles[i];
+
+  /* all missiles in use? */
+  if(missile == NULL)
+    return;
+
+  ship->fire_debounce = true;
+
   missile->active = true;
   missile->angle  = ship->angle;
-
   missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
   missile->velocity->y = (float) -(cos(deg2rad(ship->angle))) * MISSILE_SPEED;
   missile->position->x = ship->position->x;
@@ -920,7 +938,6 @@ main(void)
   bool key[5] = { false, false, false, false, false };
 
   /* force full button press */
-  bool fire_debounce  = false;
   bool hyper_debounce = false;
 
   struct timeval t;
@@ -961,15 +978,8 @@ main(void)
       }
 
       /* shoot */
-      if(key[KEY_SPACE]) {
-        for(int i = 0; i < MAX_MISSILES; i++) {
-          if(!asteroids.ship->missiles[i]->active && !fire_debounce) {
-            launch_missile(asteroids.ship, asteroids.ship->missiles[i]);
-            fire_debounce = true;
-            break;
-          }
-        }
-      }
+      if(key[KEY_SPACE])
+        launch_missile(asteroids.ship);
 
       /* ship->asteroid collisions. */
       for(int i = 0; i < asteroids.level->n_asteroids; i++) {
@@ -1039,7 +1049,7 @@ main(void)
           break;
         case ALLEGRO_KEY_SPACE:
           key[KEY_SPACE] = false;
-          fire_debounce = false;
+          asteroids.ship->fire_debounce = false;
           break;
         case ALLEGRO_KEY_LCTRL:
           key[KEY_LCONTROL] = false;
