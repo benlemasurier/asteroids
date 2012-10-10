@@ -43,7 +43,7 @@
 #define ASTEROID_MEDIUM_POINTS 50
 #define ASTEROID_SMALL_POINTS  100
 
-const int DRAWING_FLAGS = 0;
+#define DRAWING_FLAGS 0
 
 enum CONTROLS {
   KEY_UP,      /* thrust */
@@ -490,12 +490,9 @@ create_asteroid(uint8_t size)
 static void
 free_asteroid(ASTEROID *asteroid)
 {
-  if(asteroid->position != NULL)
-    free(asteroid->position);
-  if(asteroid->velocity != NULL)
-    free(asteroid->velocity);
-  if(asteroid != NULL)
-    free(asteroid);
+  free(asteroid->position);
+  free(asteroid->velocity);
+  free(asteroid);
 
   asteroid = NULL;
 }
