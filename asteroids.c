@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
 #include <time.h>
@@ -18,6 +19,8 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+
+#include "asteroids.h"
 
 #define FPS     60
 #define DRAG    0.99
@@ -67,78 +70,6 @@ enum {
   SMALL_180   = 10,
   SMALL_270   = 11
 };
-
-typedef struct vector_t {
-  float x;
-  float y;
-} VECTOR;
-
-typedef struct animation_t {
-  uint8_t width;
-  uint8_t height;
-  VECTOR *position;
-
-  size_t  n_frames;
-  size_t  current_frame;
-
-  /* slowdown factor, play each frame `slowdown` times */
-  uint8_t slowdown;
-
-  /* how many times has the current frame been played? */
-  uint8_t frame_played;
-
-  ALLEGRO_BITMAP **sprites;
-} ANIMATION;
-
-typedef struct missile_t {
-  int width;
-  int height;
-  bool active;
-  int64_t time;
-
-  float angle;
-  VECTOR *position;
-  VECTOR *velocity;
-
-  ALLEGRO_BITMAP *sprite;
-} MISSILE;
-
-typedef struct ship_t {
-  int width;
-  int height;
-  bool thrust_visible;
-  bool fire_debounce;
-  bool hyper_debounce;
-
-  MISSILE **missiles;
-
-  float angle;
-  VECTOR *position;
-  VECTOR *velocity;
-
-  ANIMATION *explosion;
-
-  ALLEGRO_BITMAP *sprite;
-  ALLEGRO_BITMAP *thrust_sprite;
-} SHIP;
-
-typedef struct asteroid_t {
-  int width;
-  int height;
-  float angle;
-  uint8_t size;
-  uint8_t points;
-
-  VECTOR *position;
-  VECTOR *velocity;
-
-  ALLEGRO_BITMAP *sprite;
-} ASTEROID;
-
-typedef struct level_t {
-  int n_asteroids;
-  ASTEROID **asteroids;
-} LEVEL;
 
 struct asteroids {
   unsigned long int   score;
