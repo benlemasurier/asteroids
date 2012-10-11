@@ -6,6 +6,7 @@
 #define ACCEL_SCALE   0.07
 
 void ship_accelerate(SHIP *ship);
+void ship_drag(SHIP *ship);
 void ship_free(SHIP *ship);
 void ship_rotate(SHIP *ship, float deg);
 

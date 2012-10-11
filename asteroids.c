@@ -26,7 +26,6 @@
 #include "asteroids.h"
 
 #define FPS     60
-#define DRAG    0.99
 
 #define SCREEN_W      800
 #define SCREEN_H      600
@@ -538,13 +537,6 @@ hyperspace(SHIP *ship)
 }
 
 static void
-drag(SHIP *ship)
-{
-  ship->velocity->x *= DRAG;
-  ship->velocity->y *= DRAG;
-}
-
-static void
 draw_animation(ANIMATION *animation)
 {
   if(animation->current_frame >= animation->n_frames)
@@ -778,7 +770,7 @@ update_ship(SHIP *ship)
   wrap_position(asteroids.ship->position);
 
   /* slow down over time */
-  drag(asteroids.ship);
+  ship_drag(asteroids.ship);
 }
 
 static void

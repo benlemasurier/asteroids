@@ -6,6 +6,8 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
+#define DRAG    0.99
+
 #define ASTEROID_LARGE  2
 #define ASTEROID_MEDIUM 1
 #define ASTEROID_SMALL  0

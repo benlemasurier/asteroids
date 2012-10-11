@@ -14,6 +14,13 @@ ship_accelerate(SHIP *ship)
 }
 
 void
+ship_drag(SHIP *ship)
+{
+  ship->velocity->x *= DRAG;
+  ship->velocity->y *= DRAG;
+}
+
+void
 ship_free(SHIP *ship)
 {
   if(ship->explosion != NULL)
