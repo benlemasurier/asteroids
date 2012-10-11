@@ -112,6 +112,21 @@ draw_lives(void)
         DRAWING_FLAGS);
 }
 
+static void
+draw_asteroids(ASTEROID *asteroid[], uint8_t count)
+{
+  for(int i = 0; i < count; i++)
+    asteroid_draw(asteroid[i]);
+}
+
+static void
+draw_missiles(MISSILE *missiles[], uint8_t count)
+{
+  for(int i = 0; i < count; i++)
+    if(missiles[i]->active)
+      missile_draw(missiles[i]);
+}
+
 static bool
 init(void)
 {
@@ -416,12 +431,9 @@ main(void)
       draw_high_score();
       draw_lives();
       ship_draw(ship, key[KEY_UP]);
-      asteroid_draw_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
+      draw_missiles(ship->missiles, MAX_MISSILES);
+      draw_asteroids(asteroids.level->asteroids, asteroids.level->n_asteroids);
       explosions_draw();
-
-      for(int i = 0; i < MAX_MISSILES; i++)
-        if(ship->missiles[i]->active)
-          missile_draw(ship->missiles[i]);
 
       al_flip_display();
     }
