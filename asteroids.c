@@ -417,7 +417,7 @@ free_asteroid(ASTEROID *asteroid)
   asteroid = NULL;
 }
 
-static void
+void
 free_animation(ANIMATION *animation)
 {
   free(animation->position);
@@ -522,19 +522,6 @@ launch_missile(SHIP *ship)
   missile->position->y = ship->position->y;
 
   missile->time = al_get_timer_count(asteroids.timer);
-}
-
-static void
-free_ship(SHIP *ship)
-{
-  if(ship->explosion != NULL)
-    free_animation(ship->explosion);
-
-  free(ship->position);
-  free(ship->velocity);
-  free(ship);
-
-  ship = NULL;
 }
 
 static void
@@ -789,7 +776,7 @@ update_ship(SHIP *ship)
 
     /* if the animation is complete, create a new ship */
     if(ship->explosion->current_frame >= ship->explosion->n_frames) {
-      free_ship(ship);
+      ship_free(ship);
       /* FIXME: need preemptive collision detection, wait() */
       asteroids.ship = create_ship();
     }
@@ -996,7 +983,7 @@ main(void)
     free_missile(asteroids.ship->missiles[i]);
   for(int i = 0; i < asteroids.level->n_asteroids; i++)
     free_asteroid(asteroids.level->asteroids[i]);
-  free_ship(asteroids.ship);
+  ship_free(asteroids.ship);
 
   al_destroy_bitmap(asteroids.lives_sprite);
   al_destroy_bitmap(asteroids.ship_sprite);

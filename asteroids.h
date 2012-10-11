@@ -78,5 +78,6 @@ typedef struct asteroid_t {
 } ASTEROID;
 
 ASTEROID *create_asteroid(uint8_t size);
+void free_animation(ANIMATION *animation);
 
 #endif /* asteroids_H */
