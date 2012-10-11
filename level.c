@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "level.h"
 #include "asteroid.h"
 #include "asteroids.h"
+#include "level.h"
 
 LEVEL *
 create_level(int n_asteroids)

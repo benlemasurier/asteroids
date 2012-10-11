@@ -35,7 +35,7 @@ enum CONTROLS {
   KEY_LCONTROL /* HYPERSPACE! */
 };
 
-struct asteroids {
+static struct asteroids {
   unsigned long int score;
   unsigned long int high_score;
 
@@ -49,7 +49,6 @@ struct asteroids {
   ALLEGRO_EVENT_QUEUE *event_queue;
 
   ALLEGRO_BITMAP *lives_sprite;
-  ALLEGRO_BITMAP *asteroid_sprites[12];
 } asteroids;
 
 static void
@@ -70,6 +69,47 @@ wrap_position(VECTOR *position)
     position->y = 0;
   if(position->y < 0)
     position->y = SCREEN_H;
+}
+
+static void
+draw_score(void)
+{
+  char score[20];
+  sprintf(score, "%02lu", asteroids.score);
+
+  al_draw_text(asteroids.large_font,
+      al_map_rgb(255,255,255),
+      SCORE_X,
+      SCORE_Y,
+      ALLEGRO_ALIGN_RIGHT,
+      score);
+}
+
+static void
+draw_high_score(void)
+{
+  char score[20];
+  sprintf(score, "%02lu", asteroids.high_score);
+
+  al_draw_text(asteroids.small_font,
+      al_map_rgb(255,255,255),
+      SCREEN_W / 2,
+      HIGH_SCORE_Y,
+      ALLEGRO_ALIGN_CENTRE,
+      score);
+}
+
+static void
+draw_lives(void)
+{
+  int width = al_get_bitmap_width(asteroids.lives_sprite);
+
+  for(int i = 0; i < asteroids.lives; i++)
+    al_draw_bitmap(
+        asteroids.lives_sprite,
+        LIVES_X + (width * i),
+        LIVES_Y,
+        DRAWING_FLAGS);
 }
 
 static bool
@@ -143,47 +183,6 @@ init(void)
   al_register_event_source(asteroids.event_queue, al_get_keyboard_event_source());
 
   return true;
-}
-
-static void
-draw_score(void)
-{
-  char score[20];
-  sprintf(score, "%02lu", asteroids.score);
-
-  al_draw_text(asteroids.large_font,
-      al_map_rgb(255,255,255),
-      SCORE_X,
-      SCORE_Y,
-      ALLEGRO_ALIGN_RIGHT,
-      score);
-}
-
-static void
-draw_high_score(void)
-{
-  char score[20];
-  sprintf(score, "%02lu", asteroids.high_score);
-
-  al_draw_text(asteroids.small_font,
-      al_map_rgb(255,255,255),
-      SCREEN_W / 2,
-      HIGH_SCORE_Y,
-      ALLEGRO_ALIGN_CENTRE,
-      score);
-}
-
-static void
-draw_lives(void)
-{
-  int width = al_get_bitmap_width(asteroids.lives_sprite);
-
-  for(int i = 0; i < asteroids.lives; i++)
-    al_draw_bitmap(
-        asteroids.lives_sprite,
-        LIVES_X + (width * i),
-        LIVES_Y,
-        DRAWING_FLAGS);
 }
 
 static bool
@@ -302,7 +301,7 @@ main(void)
   if(!init())
     exit(EXIT_FAILURE);
 
-  if((ship = ship_create()) == NULL)
+  if(!(ship = ship_create()))
     exit(EXIT_FAILURE);
 
   asteroids.level = create_level(4);

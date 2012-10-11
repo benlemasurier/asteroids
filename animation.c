@@ -6,6 +6,7 @@
 #include <allegro5/allegro_image.h>
 
 #include "asteroids.h"
+#include "animation.h"
 
 void
 animation_draw(ANIMATION *animation)

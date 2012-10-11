@@ -6,11 +6,11 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
-#include "ship.h"
 #include "util.h"
 #include "missile.h"
 #include "animation.h"
 #include "asteroids.h"
+#include "ship.h"
 
 static ALLEGRO_BITMAP *sprite;
 static ALLEGRO_BITMAP *thrust_sprite;

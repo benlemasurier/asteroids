@@ -9,6 +9,21 @@
 #define ASTEROID_MEDIUM_POINTS 50
 #define ASTEROID_SMALL_POINTS  100
 
+#include "asteroids.h"
+
+typedef struct asteroid_t {
+  int width;
+  int height;
+  float angle;
+  uint8_t size;
+  uint8_t points;
+
+  VECTOR *position;
+  VECTOR *velocity;
+
+  ALLEGRO_BITMAP *sprite;
+} ASTEROID;
+
 ASTEROID *create_asteroid(uint8_t size);
 void asteroid_draw(ASTEROID *asteroid);
 void asteroid_draw_all(ASTEROID *asteroids[], uint8_t count);
