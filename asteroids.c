@@ -403,7 +403,7 @@ free_asteroid(ASTEROID *asteroid)
 static void
 new_explosion(VECTOR *position)
 {
-  ANIMATION *explosion = new_animation(asteroids.explosion_sprites, 15);
+  ANIMATION *explosion = animation_new(asteroids.explosion_sprites, 15);
 
   explosion->slowdown = 2;
   explosion->position->x = position->x - (explosion->width  / 2);
@@ -734,7 +734,7 @@ main(void)
           update_missile(asteroids.ship->missiles[i]);
       for(int i = 0; i < asteroids.n_explosions; i++)
         if(asteroids.explosions[i]->current_frame < asteroids.explosions[i]->n_frames)
-          update_animation(asteroids.explosions[i]);
+          animation_update(asteroids.explosions[i]);
         else
           remove_explosion(asteroids.explosions[i]);
 
@@ -796,7 +796,7 @@ main(void)
         if(asteroids.ship->missiles[i]->active)
           draw_missile(asteroids.ship->missiles[i]);
       for(int i = 0; i < asteroids.n_explosions; i++)
-        draw_animation(asteroids.explosions[i]);
+        animation_draw(asteroids.explosions[i]);
 
       al_flip_display();
     }

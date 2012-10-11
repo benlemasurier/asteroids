@@ -29,7 +29,7 @@ ship_explode(SHIP *ship, ALLEGRO_BITMAP **sprites, uint8_t n_frames)
   if(ship->explosion)
     return false;
 
-  ANIMATION *explosion = new_animation(sprites, n_frames);
+  ANIMATION *explosion = animation_new(sprites, n_frames);
 
   // explosion->slowdown = 10;
   explosion->position->x = ship->position->x - (explosion->width  / 2);
@@ -81,7 +81,7 @@ void
 ship_draw(SHIP *ship, bool thrusting)
 {
   if(ship->explosion != NULL) {
-    draw_animation(ship->explosion);
+    animation_draw(ship->explosion);
     return;
   }
 
@@ -109,7 +109,7 @@ void
 ship_update(SHIP *ship)
 {
   if(ship->explosion) {
-    update_animation(ship->explosion);
+    animation_update(ship->explosion);
 
     /* if the animation is complete, create a new ship */
     if(ship->explosion->current_frame >= ship->explosion->n_frames) {

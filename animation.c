@@ -8,6 +8,19 @@
 #include "asteroids.h"
 
 void
+animation_draw(ANIMATION *animation)
+{
+  if(animation->current_frame >= animation->n_frames)
+    return;
+
+  al_draw_bitmap(
+      animation->sprites[animation->current_frame],
+      animation->position->x,
+      animation->position->y,
+      DRAWING_FLAGS);
+}
+
+void
 animation_free(ANIMATION *animation)
 {
   free(animation->position);
@@ -16,7 +29,7 @@ animation_free(ANIMATION *animation)
 }
 
 ANIMATION *
-new_animation(ALLEGRO_BITMAP **sprites, size_t n_frames)
+animation_new(ALLEGRO_BITMAP **sprites, size_t n_frames)
 {
   ANIMATION *animation = malloc(sizeof(ANIMATION));
 
@@ -37,20 +50,7 @@ new_animation(ALLEGRO_BITMAP **sprites, size_t n_frames)
 }
 
 void
-draw_animation(ANIMATION *animation)
-{
-  if(animation->current_frame >= animation->n_frames)
-    return;
-
-  al_draw_bitmap(
-      animation->sprites[animation->current_frame],
-      animation->position->x,
-      animation->position->y,
-      DRAWING_FLAGS);
-}
-
-void
-update_animation(ANIMATION *animation)
+animation_update(ANIMATION *animation)
 {
   /* slow down animation playback by rendering
    * each frame multiple times */
