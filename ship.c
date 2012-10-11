@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_image.h>
 
 #include "ship.h"
 #include "util.h"
@@ -10,11 +12,43 @@
 #include "animation.h"
 #include "asteroids.h"
 
+static ALLEGRO_BITMAP *sprite;
+static ALLEGRO_BITMAP *thrust_sprite;
+static ALLEGRO_BITMAP *explosion_sprites[60];
+
 void
 ship_accelerate(SHIP *ship)
 {
   ship->velocity->x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
   ship->velocity->y += (float) -(cos(deg2rad(ship->angle))) * ACCEL_SCALE;
+}
+
+SHIP *
+ship_create(void)
+{
+  SHIP *ship = malloc(sizeof(SHIP));
+  ship->position = malloc(sizeof(VECTOR));
+  ship->velocity = malloc(sizeof(VECTOR));
+
+  ship->sprite = sprite;
+  ship->thrust_sprite = thrust_sprite;
+
+  ship->width       = al_get_bitmap_width(ship->sprite);
+  ship->height      = al_get_bitmap_height(ship->sprite);
+  ship->angle       = 0.0;
+  ship->velocity->x = 0.0;
+  ship->velocity->y = 0.0;
+  ship->position->x = SCREEN_W / 2;
+  ship->position->y = SCREEN_H / 2;
+  ship->explosion   = NULL;
+  ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
+  ship->thrust_visible = false;
+  ship->fire_debounce  = false;
+
+  for(int i = 0; i < MAX_MISSILES; i++)
+    ship->missiles[i] = create_missile();
+
+  return ship;
 }
 
 void
@@ -25,12 +59,12 @@ ship_drag(SHIP *ship)
 }
 
 bool
-ship_explode(SHIP *ship, ALLEGRO_BITMAP **sprites, uint8_t n_frames)
+ship_explode(SHIP *ship)
 {
   if(ship->explosion)
     return false;
 
-  ANIMATION *explosion = animation_new(sprites, n_frames);
+  ANIMATION *explosion = animation_new(explosion_sprites, 60);
 
   // explosion->slowdown = 10;
   explosion->position->x = ship->position->x - (explosion->width  / 2);
@@ -97,6 +131,32 @@ ship_hyperspace(SHIP *ship)
   ship->position->y = rand_f(0, SCREEN_H);
 }
 
+bool
+ship_init(void)
+{
+  if((sprite = al_load_bitmap("data/sprites/ship.png")) == NULL) {
+    fprintf(stderr, "failed to load ship sprite\n");
+    return false;
+  }
+
+  if((thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png")) == NULL) {
+    fprintf(stderr, "failed to load ship thrust sprite\n");
+    return false;
+  }
+
+  /* ship explosion animation frames */
+  for(int i = 0; i < 60; i++) {
+    char name[255];
+    sprintf(name, "data/sprites/ship/explosion/%d.png", i + 1);
+    if((explosion_sprites[i] = al_load_bitmap(name)) == NULL) {
+      fprintf(stderr, "failed to load ship explosion sprite %d\n", i);
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void
 ship_rotate(SHIP *ship, float deg)
 {
@@ -116,16 +176,16 @@ ship_draw(SHIP *ship, bool thrusting)
     return;
   }
 
-  ALLEGRO_BITMAP *sprite;
+  ALLEGRO_BITMAP *current_sprite;
 
   /* this creates a flashing thrust visualization
    * not _exactly_ like the original (too fast), but close. (FIXME) */
-  sprite = ship->sprite;
+  current_sprite = ship->sprite;
   if(thrusting && !ship->thrust_visible)
-    sprite = ship->thrust_sprite;
+    current_sprite = ship->thrust_sprite;
 
   al_draw_rotated_bitmap(
-      sprite,
+      current_sprite,
       ship->width  / 2,
       ship->height / 2,
       ship->position->x,
@@ -146,7 +206,7 @@ ship_update(SHIP *ship)
     if(ship->explosion->current_frame >= ship->explosion->n_frames) {
       ship_free(ship);
       /* FIXME: need preemptive collision detection, wait() */
-      ship = create_ship();
+      ship = ship_create();
     }
 
     return;

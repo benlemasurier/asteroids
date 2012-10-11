@@ -55,7 +55,6 @@ struct asteroids {
   ALLEGRO_BITMAP *lives_sprite;
   ALLEGRO_BITMAP *asteroid_sprites[12];
   ALLEGRO_BITMAP *explosion_sprites[15];
-  ALLEGRO_BITMAP *ship_explosion_sprites[60];
 } asteroids;
 
 static void
@@ -76,32 +75,6 @@ wrap_position(VECTOR *position)
     position->y = 0;
   if(position->y < 0)
     position->y = SCREEN_H;
-}
-
-static bool
-preload_ship_sprites(void)
-{
-  if((asteroids.ship_sprite = al_load_bitmap("data/sprites/ship.png")) == NULL) {
-    fprintf(stderr, "failed to load ship sprite\n");
-    return false;
-  }
-
-  if((asteroids.ship_thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png")) == NULL) {
-    fprintf(stderr, "failed to load ship thrust sprite\n");
-    return false;
-  }
-
-  /* ship explosion animation frames */
-  for(int i = 0; i < 60; i++) {
-    char name[255];
-    sprintf(name, "data/sprites/ship/explosion/%d.png", i + 1);
-    if((asteroids.ship_explosion_sprites[i] = al_load_bitmap(name)) == NULL) {
-      fprintf(stderr, "failed to load ship explosion sprite %d\n", i);
-      return false;
-    }
-  }
-
-  return true;
 }
 
 static bool
@@ -140,7 +113,7 @@ init(void)
   }
 
   /* sprite preloading */
-  if(!preload_ship_sprites())
+  if(!ship_init())
     return false;
   if(!asteroid_init())
     return false;
@@ -180,34 +153,6 @@ init(void)
   al_register_event_source(asteroids.event_queue, al_get_keyboard_event_source());
 
   return true;
-}
-
-SHIP *
-create_ship(void)
-{
-  SHIP *ship = malloc(sizeof(SHIP));
-  ship->position = malloc(sizeof(VECTOR));
-  ship->velocity = malloc(sizeof(VECTOR));
-
-  ship->sprite = asteroids.ship_sprite;
-  ship->thrust_sprite = asteroids.ship_thrust_sprite;
-
-  ship->width       = al_get_bitmap_width(ship->sprite);
-  ship->height      = al_get_bitmap_height(ship->sprite);
-  ship->angle       = 0.0;
-  ship->velocity->x = 0.0;
-  ship->velocity->y = 0.0;
-  ship->position->x = SCREEN_W / 2;
-  ship->position->y = SCREEN_H / 2;
-  ship->explosion   = NULL;
-  ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
-  ship->thrust_visible = false;
-  ship->fire_debounce  = false;
-
-  for(int i = 0; i < MAX_MISSILES; i++)
-    ship->missiles[i] = create_missile();
-
-  return ship;
 }
 
 static void
@@ -399,7 +344,7 @@ main(void)
   if(!init())
     exit(EXIT_FAILURE);
 
-  if((ship = create_ship()) == NULL)
+  if((ship = ship_create()) == NULL)
     exit(EXIT_FAILURE);
 
   asteroids.level = create_level(4);
@@ -435,7 +380,7 @@ main(void)
         if(asteroid_collision(ship, asteroids.level->asteroids[i])) {
           asteroids.score += asteroids.level->asteroids[i]->points;
           explode_asteroid(asteroids.level->asteroids[i]);
-          if(ship_explode(ship, asteroids.ship_explosion_sprites, 60))
+          if(ship_explode(ship))
             asteroids.lives--;
         }
       }
