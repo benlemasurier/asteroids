@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "level.h"
+#include "asteroid.h"
 #include "asteroids.h"
 
 LEVEL *

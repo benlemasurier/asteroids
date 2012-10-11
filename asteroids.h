@@ -15,6 +15,10 @@
 #define ASTEROID_MEDIUM 1
 #define ASTEROID_SMALL  0
 
+#define ASTEROID_LARGE_POINTS  20
+#define ASTEROID_MEDIUM_POINTS 50
+#define ASTEROID_SMALL_POINTS  100
+
 #define DRAWING_FLAGS 0
 
 typedef struct vector_t {
@@ -84,8 +88,9 @@ typedef struct asteroid_t {
   ALLEGRO_BITMAP *sprite;
 } ASTEROID;
 
-ASTEROID *create_asteroid(uint8_t size);
 void wrap_position(VECTOR *position);
 SHIP *create_ship(void);
+bool preload_asteroid_sprites(void);
+ALLEGRO_BITMAP *load_asteroid_sprite(uint8_t size, float angle);
 
 #endif /* asteroids_H */

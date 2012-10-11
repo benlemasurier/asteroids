@@ -21,6 +21,7 @@
 #include "util.h"
 #include "ship.h"
 #include "level.h"
+#include "asteroid.h"
 #include "animation.h"
 #include "asteroids.h"
 
@@ -35,10 +36,6 @@
 #define SCORE_X       130
 #define SCORE_Y       27
 #define HIGH_SCORE_Y  30
-
-#define ASTEROID_LARGE_POINTS  20
-#define ASTEROID_MEDIUM_POINTS 50
-#define ASTEROID_SMALL_POINTS  100
 
 enum CONTROLS {
   KEY_UP,      /* thrust */
@@ -108,7 +105,7 @@ wrap_position(VECTOR *position)
     position->y = SCREEN_H;
 }
 
-static bool
+bool
 preload_asteroid_sprites(void)
 {
   /* FIXME: fugtf */
@@ -297,7 +294,7 @@ create_ship(void)
   return ship;
 }
 
-static ALLEGRO_BITMAP *
+ALLEGRO_BITMAP *
 load_asteroid_sprite(uint8_t size, float angle)
 {
   ALLEGRO_BITMAP *sprite = NULL;
@@ -347,57 +344,6 @@ load_asteroid_sprite(uint8_t size, float angle)
   }
 
   return sprite;
-}
-
-ASTEROID *
-create_asteroid(uint8_t size)
-{
-  ASTEROID *asteroid = malloc(sizeof(ASTEROID));
-
-  asteroid->position = malloc(sizeof(VECTOR));
-  asteroid->velocity = malloc(sizeof(VECTOR));
-
-  asteroid->size  = size;
-  asteroid->angle = rand_f(0.0, 360.0);
-  asteroid->position->x = rand_f(1.0, SCREEN_W);
-  asteroid->position->y = rand_f(1.0, SCREEN_H);
-  asteroid->velocity->x = (float)   sin(deg2rad(asteroid->angle))  * rand_f(0.1, 1.2);
-  asteroid->velocity->y = (float) -(cos(deg2rad(asteroid->angle))) * rand_f(0.1, 1.2);
-
-  switch(size) {
-    case ASTEROID_LARGE:
-      asteroid->points = ASTEROID_LARGE_POINTS;
-      break;
-    case ASTEROID_MEDIUM:
-      asteroid->points = ASTEROID_MEDIUM_POINTS;
-      break;
-    case ASTEROID_SMALL:
-      asteroid->points = ASTEROID_SMALL_POINTS;
-      break;
-  }
-
-  if((asteroid->sprite = load_asteroid_sprite(size, asteroid->angle)) == NULL) {
-    free(asteroid->position);
-    free(asteroid->velocity);
-    free(asteroid);
-
-    return NULL;
-  }
-
-  asteroid->width  = al_get_bitmap_width(asteroid->sprite);
-  asteroid->height = al_get_bitmap_height(asteroid->sprite);
-
-  return asteroid;
-}
-
-static void
-free_asteroid(ASTEROID *asteroid)
-{
-  free(asteroid->position);
-  free(asteroid->velocity);
-  free(asteroid);
-
-  asteroid = NULL;
 }
 
 static void
@@ -471,16 +417,6 @@ free_missile(MISSILE *missile)
   free(missile);
 
   missile = NULL;
-}
-
-static void
-draw_asteroid(ASTEROID *asteroid)
-{
-  al_draw_bitmap(
-      asteroid->sprite,
-      asteroid->position->x - (asteroid->width  / 2),
-      asteroid->position->y - (asteroid->height / 2),
-      DRAWING_FLAGS);
 }
 
 static void
@@ -590,7 +526,7 @@ explode_asteroid(ASTEROID *asteroid)
       if(level->asteroids[i] != asteroid)
         temp[j] = level->asteroids[i], j++;
 
-    free_asteroid(asteroid);
+    asteroid_free(asteroid);
     free(level->asteroids);
     level->asteroids = temp;
     level->n_asteroids--;
@@ -617,7 +553,7 @@ explode_asteroid(ASTEROID *asteroid)
   asteroids.level->asteroids[level->n_asteroids - 1]->position->x = asteroid->position->x;
   asteroids.level->asteroids[level->n_asteroids - 1]->position->y = asteroid->position->y;
 
-  free_asteroid(asteroid);
+  asteroid_free(asteroid);
 }
 
 static void
@@ -628,14 +564,6 @@ missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
 
   new_explosion(missile->position);
   explode_asteroid(asteroid);
-}
-
-static void
-update_asteroid(ASTEROID *asteroid)
-{
-  asteroid->position->x += asteroid->velocity->x;
-  asteroid->position->y += asteroid->velocity->y;
-  wrap_position(asteroid->position);
 }
 
 static void
@@ -728,7 +656,7 @@ main(void)
       /* update positions */
       ship_update(asteroids.ship);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
-        update_asteroid(asteroids.level->asteroids[i]);
+        asteroid_update(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)
         if(asteroids.ship->missiles[i]->active)
           update_missile(asteroids.ship->missiles[i]);
@@ -791,7 +719,7 @@ main(void)
       draw_lives();
       ship_draw(asteroids.ship, key[KEY_UP]);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
-        draw_asteroid(asteroids.level->asteroids[i]);
+        asteroid_draw(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)
         if(asteroids.ship->missiles[i]->active)
           draw_missile(asteroids.ship->missiles[i]);
@@ -813,7 +741,7 @@ main(void)
   for(int i = 0; i < MAX_MISSILES; i++)
     free_missile(asteroids.ship->missiles[i]);
   for(int i = 0; i < asteroids.level->n_asteroids; i++)
-    free_asteroid(asteroids.level->asteroids[i]);
+    asteroid_free(asteroids.level->asteroids[i]);
   ship_free(asteroids.ship);
 
   al_destroy_bitmap(asteroids.lives_sprite);
