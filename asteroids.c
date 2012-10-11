@@ -21,21 +21,10 @@
 #include "util.h"
 #include "ship.h"
 #include "level.h"
+#include "missile.h"
 #include "asteroid.h"
 #include "animation.h"
 #include "asteroids.h"
-
-#define FPS     60
-
-#define MISSILE_SPEED 8
-#define MISSILE_TTL   1
-#define MAX_MISSILES  4
-#define START_LIVES   3
-#define LIVES_X       84
-#define LIVES_Y       60
-#define SCORE_X       130
-#define SCORE_Y       27
-#define HIGH_SCORE_Y  30
 
 enum CONTROLS {
   KEY_UP,      /* thrust */
@@ -240,31 +229,6 @@ init(void)
   return true;
 }
 
-static MISSILE *
-create_missile(void)
-{
-  MISSILE *missile  = malloc(sizeof(MISSILE));
-  missile->position = malloc(sizeof(VECTOR));
-  missile->velocity = malloc(sizeof(VECTOR));
-
-  missile->sprite = al_load_bitmap("data/sprites/missile.png");
-  missile->width  = al_get_bitmap_width(missile->sprite);
-  missile->height = al_get_bitmap_height(missile->sprite);
-
-  if(!missile->sprite) {
-    free(missile->position);
-    free(missile->velocity);
-    free(missile);
-    fprintf(stderr, "failed to create missile sprite.\n");
-
-    return NULL;
-  }
-
-  missile->active = false;
-
-  return missile;
-}
-
 SHIP *
 create_ship(void)
 {
@@ -375,57 +339,6 @@ remove_explosion(ANIMATION *explosion)
   asteroids.n_explosions--;
 
   animation_free(explosion);
-}
-
-static void
-launch_missile(SHIP *ship)
-{
-  MISSILE *missile = NULL;
-
-  /* full button press required for each missile */
-  if(ship->fire_debounce)
-    return;
-
-  /* find an inactive missile to launch */
-  for(int i = 0; i < MAX_MISSILES && missile == NULL; i++)
-    if(!ship->missiles[i]->active)
-      missile = ship->missiles[i];
-
-  /* all missiles in use? */
-  if(missile == NULL)
-    return;
-
-  ship->fire_debounce = true;
-
-  missile->active = true;
-  missile->angle  = ship->angle;
-  missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
-  missile->velocity->y = (float) -(cos(deg2rad(ship->angle))) * MISSILE_SPEED;
-  missile->position->x = ship->position->x;
-  missile->position->y = ship->position->y;
-
-  missile->time = al_get_timer_count(asteroids.timer);
-}
-
-static void
-free_missile(MISSILE *missile)
-{
-  free(missile->position);
-  free(missile->velocity);
-  al_destroy_bitmap(missile->sprite);
-  free(missile);
-
-  missile = NULL;
-}
-
-static void
-draw_missile(MISSILE *missile)
-{
-  al_draw_bitmap(
-      missile->sprite,
-      missile->position->x - (missile->width  / 2),
-      missile->position->y - (missile->height / 2),
-      DRAWING_FLAGS);
 }
 
 static void
@@ -565,19 +478,6 @@ missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
   explode_asteroid(asteroid);
 }
 
-static void
-update_missile(MISSILE *missile)
-{
-  if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(asteroids.timer)) {
-    missile->active = false;
-    return;
-  }
-
-  missile->position->x += missile->velocity->x;
-  missile->position->y += missile->velocity->y;
-  wrap_position(missile->position);
-}
-
 int
 main(void)
 {
@@ -627,7 +527,7 @@ main(void)
 
       /* shoot */
       if(key[KEY_SPACE])
-        launch_missile(ship);
+        ship_fire(ship, asteroids.timer);
 
       /* ship->asteroid collisions. */
       for(int i = 0; i < asteroids.level->n_asteroids; i++) {
@@ -659,7 +559,7 @@ main(void)
         asteroid_update(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
-          update_missile(ship->missiles[i]);
+          update_missile(ship->missiles[i], asteroids.timer);
       for(int i = 0; i < asteroids.n_explosions; i++)
         if(asteroids.explosions[i]->current_frame < asteroids.explosions[i]->n_frames)
           animation_update(asteroids.explosions[i]);
@@ -722,13 +622,13 @@ main(void)
         asteroid_draw(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
-          draw_missile(ship->missiles[i]);
+          missile_draw(ship->missiles[i]);
       for(int i = 0; i < asteroids.n_explosions; i++)
         animation_draw(asteroids.explosions[i]);
 
       al_flip_display();
     }
-  }
+  };
 
   /* FIXME: cleanup */
   if(asteroids.timer != NULL)
@@ -739,7 +639,7 @@ main(void)
     al_destroy_display(asteroids.display);
 
   for(int i = 0; i < MAX_MISSILES; i++)
-    free_missile(ship->missiles[i]);
+    missile_free(ship->missiles[i]);
   for(int i = 0; i < asteroids.level->n_asteroids; i++)
     asteroid_free(asteroids.level->asteroids[i]);
   ship_free(ship);

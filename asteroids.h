@@ -6,10 +6,20 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
-#define DRAG    0.99
+#define FPS  60
+#define DRAG 0.99
 
-#define SCREEN_W      800
-#define SCREEN_H      600
+#define SCREEN_W 800
+#define SCREEN_H 600
+
+#define MISSILE_SPEED 8
+#define MAX_MISSILES  4
+#define START_LIVES   3
+#define LIVES_X       84
+#define LIVES_Y       60
+#define SCORE_X       130
+#define SCORE_Y       27
+#define HIGH_SCORE_Y  30
 
 #define DRAWING_FLAGS 0
 

@@ -6,6 +6,7 @@
 
 #include "ship.h"
 #include "util.h"
+#include "missile.h"
 #include "animation.h"
 #include "asteroids.h"
 
@@ -38,6 +39,36 @@ ship_explode(SHIP *ship, ALLEGRO_BITMAP **sprites, uint8_t n_frames)
   ship->explosion = explosion;
 
   return true;
+}
+
+void
+ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
+{
+  MISSILE *missile = NULL;
+
+  /* full button press required for each missile */
+  if(ship->fire_debounce)
+    return;
+
+  /* find an inactive missile to launch */
+  for(int i = 0; i < MAX_MISSILES && missile == NULL; i++)
+    if(!ship->missiles[i]->active)
+      missile = ship->missiles[i];
+
+  /* all missiles in use? */
+  if(missile == NULL)
+    return;
+
+  ship->fire_debounce = true;
+
+  missile->active = true;
+  missile->angle  = ship->angle;
+  missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
+  missile->velocity->y = (float) -(cos(deg2rad(ship->angle))) * MISSILE_SPEED;
+  missile->position->x = ship->position->x;
+  missile->position->y = ship->position->y;
+
+  missile->time = al_get_timer_count(timer);
 }
 
 void
