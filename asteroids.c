@@ -13,8 +13,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
-#include <time.h>
-#include <sys/time.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
@@ -27,8 +25,6 @@
 
 #define FPS     60
 
-#define SCREEN_W      800
-#define SCREEN_H      600
 #define MISSILE_SPEED 8
 #define MISSILE_TTL   1
 #define MAX_MISSILES  4
@@ -42,8 +38,6 @@
 #define ASTEROID_LARGE_POINTS  20
 #define ASTEROID_MEDIUM_POINTS 50
 #define ASTEROID_SMALL_POINTS  100
-
-#define DRAWING_FLAGS 0
 
 enum CONTROLS {
   KEY_UP,      /* thrust */
@@ -507,20 +501,7 @@ free_missile(MISSILE *missile)
   missile = NULL;
 }
 
-static void
-hyperspace(SHIP *ship)
-{
-  if(ship->hyper_debounce)
-    return;
-
-  ship->hyper_debounce = true;
-  ship->velocity->x = 0.0;
-  ship->velocity->y = 0.0;
-  ship->position->x = rand_f(0, SCREEN_W);
-  ship->position->y = rand_f(0, SCREEN_H);
-}
-
-static void
+void
 draw_animation(ANIMATION *animation)
 {
   if(animation->current_frame >= animation->n_frames)
@@ -531,34 +512,6 @@ draw_animation(ANIMATION *animation)
       animation->position->x,
       animation->position->y,
       DRAWING_FLAGS);
-}
-
-static void
-draw_ship(SHIP *ship, bool thrusting)
-{
-  if(ship->explosion != NULL) {
-    draw_animation(ship->explosion);
-    return;
-  }
-
-  ALLEGRO_BITMAP *sprite;
-
-  /* this creates a flashing thrust visualization
-   * not _exactly_ like the original (too fast), but close. (FIXME) */
-  sprite = ship->sprite;
-  if(thrusting && !ship->thrust_visible)
-    sprite = ship->thrust_sprite;
-
-  al_draw_rotated_bitmap(
-      sprite,
-      ship->width  / 2,
-      ship->height / 2,
-      ship->position->x,
-      ship->position->y,
-      deg2rad(ship->angle),
-      DRAWING_FLAGS);
-
-  ship->thrust_visible = (ship->thrust_visible) ? false : true;
 }
 
 static void
@@ -754,14 +707,6 @@ update_missile(MISSILE *missile)
   wrap_position(missile->position);
 }
 
-static void
-seed_rand(void)
-{
-  struct timeval t;
-  gettimeofday(&t, NULL);
-  srand(t.tv_usec * t.tv_sec);
-}
-
 int
 main(void)
 {
@@ -806,7 +751,7 @@ main(void)
 
       /* hyperspace */
       if(key[KEY_LCONTROL])
-        hyperspace(asteroids.ship);
+        ship_hyperspace(asteroids.ship);
 
       /* shoot */
       if(key[KEY_SPACE])
@@ -900,7 +845,7 @@ main(void)
       draw_score();
       draw_high_score();
       draw_lives();
-      draw_ship(asteroids.ship, key[KEY_UP]);
+      ship_draw(asteroids.ship, key[KEY_UP]);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         draw_asteroid(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)

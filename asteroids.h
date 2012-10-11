@@ -8,9 +8,14 @@
 
 #define DRAG    0.99
 
+#define SCREEN_W      800
+#define SCREEN_H      600
+
 #define ASTEROID_LARGE  2
 #define ASTEROID_MEDIUM 1
 #define ASTEROID_SMALL  0
+
+#define DRAWING_FLAGS 0
 
 typedef struct vector_t {
   float x;
@@ -85,5 +90,6 @@ ANIMATION *new_animation(ALLEGRO_BITMAP **sprites, size_t n_frames);
 void update_animation(ANIMATION *animation);
 void wrap_position(VECTOR *position);
 SHIP *create_ship(void);
+void draw_animation(ANIMATION *animation);
 
 #endif /* asteroids_H */
