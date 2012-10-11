@@ -20,6 +20,7 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 
+#include "util.h"
 #include "level.h"
 #include "asteroids.h"
 
@@ -122,18 +123,6 @@ wrap_position(VECTOR *position)
     position->y = 0;
   if(position->y < 0)
     position->y = SCREEN_H;
-}
-
-static float
-deg2rad(float deg)
-{
-  return deg * (M_PI / 180);
-}
-
-static float
-rand_f(float low, float high)
-{
-  return low + (float) rand() / ((float) RAND_MAX / (high - low));
 }
 
 static bool
