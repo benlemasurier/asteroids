@@ -82,5 +82,8 @@ typedef struct asteroid_t {
 ASTEROID *create_asteroid(uint8_t size);
 void free_animation(ANIMATION *animation);
 ANIMATION *new_animation(ALLEGRO_BITMAP **sprites, size_t n_frames);
+void update_animation(ANIMATION *animation);
+void wrap_position(VECTOR *position);
+SHIP *create_ship(void);
 
 #endif /* asteroids_H */

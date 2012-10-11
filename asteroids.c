@@ -100,7 +100,7 @@ shutdown(void)
   printf("shutdown.\n");
 }
 
-static void
+void
 wrap_position(VECTOR *position)
 {
   if(position->x > SCREEN_W)
@@ -274,7 +274,7 @@ create_missile(void)
   return missile;
 }
 
-static SHIP *
+SHIP *
 create_ship(void)
 {
   SHIP *ship = malloc(sizeof(SHIP));
@@ -718,7 +718,7 @@ missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
   explode_asteroid(asteroid);
 }
 
-static void
+void
 update_animation(ANIMATION *animation)
 {
   /* slow down animation playback by rendering
@@ -731,30 +731,6 @@ update_animation(ANIMATION *animation)
 
   animation->current_frame++;
   animation->frame_played = 0;
-}
-
-static void
-update_ship(SHIP *ship)
-{
-  if(ship->explosion) {
-    update_animation(ship->explosion);
-
-    /* if the animation is complete, create a new ship */
-    if(ship->explosion->current_frame >= ship->explosion->n_frames) {
-      ship_free(ship);
-      /* FIXME: need preemptive collision detection, wait() */
-      asteroids.ship = create_ship();
-    }
-
-    return;
-  }
-
-  ship->position->x += ship->velocity->x;
-  ship->position->y += ship->velocity->y;
-  wrap_position(asteroids.ship->position);
-
-  /* slow down over time */
-  ship_drag(asteroids.ship);
 }
 
 static void
@@ -861,7 +837,7 @@ main(void)
       }
 
       /* update positions */
-      update_ship(asteroids.ship);
+      ship_update(asteroids.ship);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         update_asteroid(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)

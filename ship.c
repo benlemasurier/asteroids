@@ -63,3 +63,27 @@ ship_rotate(SHIP *ship, float deg)
     ship->angle += 360.0;
 }
 
+void
+ship_update(SHIP *ship)
+{
+  if(ship->explosion) {
+    update_animation(ship->explosion);
+
+    /* if the animation is complete, create a new ship */
+    if(ship->explosion->current_frame >= ship->explosion->n_frames) {
+      ship_free(ship);
+      /* FIXME: need preemptive collision detection, wait() */
+      ship = create_ship();
+    }
+
+    return;
+  }
+
+  ship->position->x += ship->velocity->x;
+  ship->position->y += ship->velocity->y;
+  wrap_position(ship->position);
+
+  /* slow down over time */
+  ship_drag(ship);
+}
+
