@@ -6,6 +6,7 @@
 
 #include "ship.h"
 #include "util.h"
+#include "animation.h"
 #include "asteroids.h"
 
 void
@@ -43,7 +44,7 @@ void
 ship_free(SHIP *ship)
 {
   if(ship->explosion != NULL)
-    free_animation(ship->explosion);
+    animation_free(ship->explosion);
 
   free(ship->position);
   free(ship->velocity);
