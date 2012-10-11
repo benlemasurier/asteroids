@@ -413,7 +413,7 @@ free_animation(ANIMATION *animation)
   animation = NULL;
 }
 
-static ANIMATION *
+ANIMATION *
 new_animation(ALLEGRO_BITMAP **sprites, size_t n_frames)
 {
   ANIMATION *animation = malloc(sizeof(ANIMATION));
@@ -446,22 +446,6 @@ new_explosion(VECTOR *position)
   asteroids.n_explosions++;
   asteroids.explosions = (ANIMATION **) realloc(asteroids.explosions, sizeof(ANIMATION *) * asteroids.n_explosions);
   asteroids.explosions[asteroids.n_explosions - 1] = explosion;
-}
-
-static void
-ship_explode(SHIP *ship)
-{
-  if(ship->explosion)
-    return;
-
-  ANIMATION *explosion = new_animation(asteroids.ship_explosion_sprites, 60);
-
-  // explosion->slowdown = 10;
-  explosion->position->x = ship->position->x - (explosion->width  / 2);
-  explosion->position->y = ship->position->y - (explosion->height / 2);
-
-  ship->explosion = explosion;
-  asteroids.lives--;
 }
 
 static void
@@ -857,7 +841,8 @@ main(void)
         if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i])) {
           asteroids.score += asteroids.level->asteroids[i]->points;
           explode_asteroid(asteroids.level->asteroids[i]);
-          ship_explode(asteroids.ship);
+          if(ship_explode(asteroids.ship, asteroids.ship_explosion_sprites, 60))
+            asteroids.lives--;
         }
       }
 

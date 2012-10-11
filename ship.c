@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <math.h>
 
 #include "ship.h"
@@ -18,6 +20,23 @@ ship_drag(SHIP *ship)
 {
   ship->velocity->x *= DRAG;
   ship->velocity->y *= DRAG;
+}
+
+bool
+ship_explode(SHIP *ship, ALLEGRO_BITMAP **sprites, uint8_t n_frames)
+{
+  if(ship->explosion)
+    return false;
+
+  ANIMATION *explosion = new_animation(sprites, n_frames);
+
+  // explosion->slowdown = 10;
+  explosion->position->x = ship->position->x - (explosion->width  / 2);
+  explosion->position->y = ship->position->y - (explosion->height / 2);
+
+  ship->explosion = explosion;
+
+  return true;
 }
 
 void
