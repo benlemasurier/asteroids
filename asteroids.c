@@ -42,6 +42,9 @@ static struct asteroids {
   int lives;
   LEVEL *level;
 
+  uint8_t   n_explosions;
+  ANIMATION **explosions;
+
   ALLEGRO_FONT    *small_font;
   ALLEGRO_FONT    *large_font;
   ALLEGRO_TIMER   *timer;
@@ -125,6 +128,51 @@ draw_missiles(MISSILE *missiles[], uint8_t count)
   for(int i = 0; i < count; i++)
     if(missiles[i]->active)
       missile_draw(missiles[i]);
+}
+
+static void
+explosions_draw(void)
+{
+  for(int i = 0; i < asteroids.n_explosions; i++)
+    animation_draw(asteroids.explosions[i]);
+}
+
+static void
+new_explosion(VECTOR *position)
+{
+  ANIMATION *explosion = explosion_create(position);
+
+  asteroids.n_explosions++;
+  asteroids.explosions = (ANIMATION **) realloc(asteroids.explosions, sizeof(ANIMATION *) * asteroids.n_explosions);
+  asteroids.explosions[asteroids.n_explosions - 1] = explosion;
+}
+
+static void
+remove_explosion(ANIMATION *explosion)
+{
+  ANIMATION **temp = malloc(sizeof(ANIMATION *) * asteroids.n_explosions - 1);
+  for(int i = 0, j = 0; i < asteroids.n_explosions; i++) {
+    if(asteroids.explosions[i] != explosion) {
+      temp[j] = asteroids.explosions[i];
+      j++;
+    }
+  }
+
+  free(asteroids.explosions);
+  asteroids.explosions = temp;
+  asteroids.n_explosions--;
+
+  animation_free(explosion);
+}
+
+static void
+explosions_update(void)
+{
+  for(int i = 0; i < asteroids.n_explosions; i++)
+    if(asteroids.explosions[i]->current_frame < asteroids.explosions[i]->n_frames)
+      animation_update(asteroids.explosions[i]);
+    else
+      remove_explosion(asteroids.explosions[i]);
 }
 
 static bool
@@ -428,8 +476,8 @@ main(void)
       al_clear_to_color(al_map_rgb(0, 0, 0));
 
       draw_score();
-      draw_high_score();
       draw_lives();
+      draw_high_score();
       ship_draw(ship, key[KEY_UP]);
       draw_missiles(ship->missiles, MAX_MISSILES);
       draw_asteroids(asteroids.level->asteroids, asteroids.level->n_asteroids);
