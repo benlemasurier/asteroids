@@ -24,6 +24,7 @@
 #include "missile.h"
 #include "asteroid.h"
 #include "animation.h"
+#include "explosion.h"
 #include "asteroids.h"
 
 enum CONTROLS {
@@ -41,9 +42,6 @@ struct asteroids {
   int lives;
   LEVEL *level;
 
-  uint8_t   n_explosions;
-  ANIMATION **explosions;
-
   ALLEGRO_FONT    *small_font;
   ALLEGRO_FONT    *large_font;
   ALLEGRO_TIMER   *timer;
@@ -52,7 +50,6 @@ struct asteroids {
 
   ALLEGRO_BITMAP *lives_sprite;
   ALLEGRO_BITMAP *asteroid_sprites[12];
-  ALLEGRO_BITMAP *explosion_sprites[15];
 } asteroids;
 
 static void
@@ -115,13 +112,8 @@ init(void)
     return false;
   if(!asteroid_init())
     return false;
-
-  for(int i = 0; i < 15; i++) {
-    char name[255];
-    sprintf(name, "data/sprites/asteroid/explosion/%d.png", i + 1);
-    if((asteroids.explosion_sprites[i] = al_load_bitmap(name)) == NULL)
-      fprintf(stderr, "failed to load explosion sprite %d\n", i);
-  }
+  if(!explosion_init())
+    return false;
 
   asteroids.timer = al_create_timer(1.0 / FPS);
   if(!asteroids.timer) {
@@ -151,38 +143,6 @@ init(void)
   al_register_event_source(asteroids.event_queue, al_get_keyboard_event_source());
 
   return true;
-}
-
-static void
-new_explosion(VECTOR *position)
-{
-  ANIMATION *explosion = animation_new(asteroids.explosion_sprites, 15);
-
-  explosion->slowdown = 2;
-  explosion->position->x = position->x - (explosion->width  / 2);
-  explosion->position->y = position->y - (explosion->height / 2);
-
-  asteroids.n_explosions++;
-  asteroids.explosions = (ANIMATION **) realloc(asteroids.explosions, sizeof(ANIMATION *) * asteroids.n_explosions);
-  asteroids.explosions[asteroids.n_explosions - 1] = explosion;
-}
-
-void
-remove_explosion(ANIMATION *explosion)
-{
-  ANIMATION **temp = malloc(sizeof(ANIMATION *) * asteroids.n_explosions - 1);
-  for(int i = 0, j = 0; i < asteroids.n_explosions; i++) {
-    if(asteroids.explosions[i] != explosion) {
-      temp[j] = asteroids.explosions[i];
-      j++;
-    }
-  }
-
-  free(asteroids.explosions);
-  asteroids.explosions = temp;
-  asteroids.n_explosions--;
-
-  animation_free(explosion);
 }
 
 static void
@@ -404,11 +364,7 @@ main(void)
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
           update_missile(ship->missiles[i], asteroids.timer);
-      for(int i = 0; i < asteroids.n_explosions; i++)
-        if(asteroids.explosions[i]->current_frame < asteroids.explosions[i]->n_frames)
-          animation_update(asteroids.explosions[i]);
-        else
-          remove_explosion(asteroids.explosions[i]);
+      explosions_update();
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -467,8 +423,7 @@ main(void)
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
           missile_draw(ship->missiles[i]);
-      for(int i = 0; i < asteroids.n_explosions; i++)
-        animation_draw(asteroids.explosions[i]);
+      explosions_draw();
 
       al_flip_display();
     }
