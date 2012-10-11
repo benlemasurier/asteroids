@@ -132,6 +132,13 @@ asteroid_draw(ASTEROID *asteroid)
 }
 
 void
+asteroid_draw_all(ASTEROID *asteroids[], uint8_t count)
+{
+  for(int i = 0; i < count; i++)
+    asteroid_draw(asteroids[i]);
+}
+
+void
 asteroid_free(ASTEROID *asteroid)
 {
   free(asteroid->position);

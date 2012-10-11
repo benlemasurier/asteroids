@@ -418,12 +418,12 @@ main(void)
       draw_high_score();
       draw_lives();
       ship_draw(ship, key[KEY_UP]);
-      for(int i = 0; i < asteroids.level->n_asteroids; i++)
-        asteroid_draw(asteroids.level->asteroids[i]);
+      asteroid_draw_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
+      explosions_draw();
+
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
           missile_draw(ship->missiles[i]);
-      explosions_draw();
 
       al_flip_display();
     }
