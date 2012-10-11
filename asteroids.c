@@ -21,6 +21,7 @@
 #include <allegro5/allegro_ttf.h>
 
 #include "util.h"
+#include "ship.h"
 #include "level.h"
 #include "asteroids.h"
 
@@ -29,7 +30,6 @@
 
 #define SCREEN_W      800
 #define SCREEN_H      600
-#define ACCEL_SCALE   0.07
 #define MISSILE_SPEED 8
 #define MISSILE_TTL   1
 #define MAX_MISSILES  4
@@ -562,13 +562,6 @@ hyperspace(SHIP *ship)
 }
 
 static void
-accelerate(SHIP *ship)
-{
-  ship->velocity->x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
-  ship->velocity->y += (float) -(cos(deg2rad(ship->angle))) * ACCEL_SCALE;
-}
-
-static void
 drag(SHIP *ship)
 {
   ship->velocity->x *= DRAG;
@@ -875,7 +868,7 @@ main(void)
     if(ev.type == ALLEGRO_EVENT_TIMER) {
       /* move forward */
       if(key[KEY_UP])
-        accelerate(asteroids.ship);
+        ship_accelerate(asteroids.ship);
 
       /* rotate */
       if(key[KEY_LEFT])

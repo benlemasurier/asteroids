@@ -11,7 +11,7 @@ You'll need the 5.0 release of Allegro, availble here: http://alleg.sourceforge.
 
 then:
 
-    gcc -std=c99 asteroids.c -o asteroids $(pkg-config --cflags --libs allegro-5.0 allegro_image-5.0 allegro_font-5.0 allegro_ttf-5.0)
+    gcc -std=c99 util.c level.c ship.c asteroids.c -o asteroids $(pkg-config --cflags --libs allegro-5.0 allegro_image-5.0 allegro_font-5.0 allegro_ttf-5.0)
 
 *note:* if you're building on **OSX**, you'll need to add `allegro_main-5.0` to the pkg-config variables
 
