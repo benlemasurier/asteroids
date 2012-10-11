@@ -359,8 +359,7 @@ main(void)
 
       /* update positions */
       ship_update(ship);
-      for(int i = 0; i < asteroids.level->n_asteroids; i++)
-        asteroid_update(asteroids.level->asteroids[i]);
+      asteroid_update_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
           update_missile(ship->missiles[i], asteroids.timer);

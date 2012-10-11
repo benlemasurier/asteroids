@@ -204,3 +204,10 @@ asteroid_update(ASTEROID *asteroid)
   asteroid->position->y += asteroid->velocity->y;
   wrap_position(asteroid->position);
 }
+
+void
+asteroid_update_all(ASTEROID *asteroids[], uint8_t count)
+{
+  for(int i = 0; i < count; i++)
+    asteroid_update(asteroids[i]);
+}
