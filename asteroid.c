@@ -7,8 +7,9 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
-#include "util.h"
 #include "asteroids.h"
+#include "util.h"
+#include "asteroid.h"
 
 ASTEROID *
 create_asteroid(uint8_t size)

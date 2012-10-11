@@ -65,7 +65,6 @@ struct asteroids {
   unsigned long int high_score;
 
   int lives;
-  SHIP  *ship;
   LEVEL *level;
 
   uint8_t   n_explosions;
@@ -587,6 +586,7 @@ main(void)
   asteroids.display     = NULL;
   asteroids.timer       = NULL;
   asteroids.event_queue = NULL;
+  SHIP *ship;
 
   bool redraw = true;
   bool quit   = false;
@@ -598,7 +598,7 @@ main(void)
   if(!init())
     exit(EXIT_FAILURE);
 
-  if((asteroids.ship = create_ship()) == NULL)
+  if((ship = create_ship()) == NULL)
     exit(EXIT_FAILURE);
 
   asteroids.level = create_level(4);
@@ -613,38 +613,38 @@ main(void)
     if(ev.type == ALLEGRO_EVENT_TIMER) {
       /* move forward */
       if(key[KEY_UP])
-        ship_accelerate(asteroids.ship);
+        ship_accelerate(ship);
 
       /* rotate */
       if(key[KEY_LEFT])
-        ship_rotate(asteroids.ship, -3);
+        ship_rotate(ship, -3);
       if(key[KEY_RIGHT])
-        ship_rotate(asteroids.ship, 3);
+        ship_rotate(ship, 3);
 
       /* hyperspace */
       if(key[KEY_LCONTROL])
-        ship_hyperspace(asteroids.ship);
+        ship_hyperspace(ship);
 
       /* shoot */
       if(key[KEY_SPACE])
-        launch_missile(asteroids.ship);
+        launch_missile(ship);
 
       /* ship->asteroid collisions. */
       for(int i = 0; i < asteroids.level->n_asteroids; i++) {
-        if(asteroid_collision(asteroids.ship, asteroids.level->asteroids[i])) {
+        if(asteroid_collision(ship, asteroids.level->asteroids[i])) {
           asteroids.score += asteroids.level->asteroids[i]->points;
           explode_asteroid(asteroids.level->asteroids[i]);
-          if(ship_explode(asteroids.ship, asteroids.ship_explosion_sprites, 60))
+          if(ship_explode(ship, asteroids.ship_explosion_sprites, 60))
             asteroids.lives--;
         }
       }
 
       /* missile->asteroid collisions. FIXME: who made this mess? */
       for(int i = 0; i < MAX_MISSILES; i++) {
-        if(asteroids.ship->missiles[i]->active) {
+        if(ship->missiles[i]->active) {
           for(int j = 0; j < asteroids.level->n_asteroids; j++) {
-            if(missile_collision(asteroids.ship->missiles[i], asteroids.level->asteroids[j])) {
-              missile_explode_asteroid(asteroids.ship->missiles[i], asteroids.level->asteroids[j]);
+            if(missile_collision(ship->missiles[i], asteroids.level->asteroids[j])) {
+              missile_explode_asteroid(ship->missiles[i], asteroids.level->asteroids[j]);
               i = 0;
               j = 0;
               continue;
@@ -654,12 +654,12 @@ main(void)
       }
 
       /* update positions */
-      ship_update(asteroids.ship);
+      ship_update(ship);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         asteroid_update(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)
-        if(asteroids.ship->missiles[i]->active)
-          update_missile(asteroids.ship->missiles[i]);
+        if(ship->missiles[i]->active)
+          update_missile(ship->missiles[i]);
       for(int i = 0; i < asteroids.n_explosions; i++)
         if(asteroids.explosions[i]->current_frame < asteroids.explosions[i]->n_frames)
           animation_update(asteroids.explosions[i]);
@@ -698,11 +698,11 @@ main(void)
           break;
         case ALLEGRO_KEY_SPACE:
           key[KEY_SPACE] = false;
-          asteroids.ship->fire_debounce = false;
+          ship->fire_debounce = false;
           break;
         case ALLEGRO_KEY_LCTRL:
           key[KEY_LCONTROL] = false;
-          asteroids.ship->hyper_debounce = false;
+          ship->hyper_debounce = false;
           break;
         case ALLEGRO_KEY_ESCAPE:
           quit = true;
@@ -717,12 +717,12 @@ main(void)
       draw_score();
       draw_high_score();
       draw_lives();
-      ship_draw(asteroids.ship, key[KEY_UP]);
+      ship_draw(ship, key[KEY_UP]);
       for(int i = 0; i < asteroids.level->n_asteroids; i++)
         asteroid_draw(asteroids.level->asteroids[i]);
       for(int i = 0; i < MAX_MISSILES; i++)
-        if(asteroids.ship->missiles[i]->active)
-          draw_missile(asteroids.ship->missiles[i]);
+        if(ship->missiles[i]->active)
+          draw_missile(ship->missiles[i]);
       for(int i = 0; i < asteroids.n_explosions; i++)
         animation_draw(asteroids.explosions[i]);
 
@@ -739,10 +739,10 @@ main(void)
     al_destroy_display(asteroids.display);
 
   for(int i = 0; i < MAX_MISSILES; i++)
-    free_missile(asteroids.ship->missiles[i]);
+    free_missile(ship->missiles[i]);
   for(int i = 0; i < asteroids.level->n_asteroids; i++)
     asteroid_free(asteroids.level->asteroids[i]);
-  ship_free(asteroids.ship);
+  ship_free(ship);
 
   al_destroy_bitmap(asteroids.lives_sprite);
   al_destroy_bitmap(asteroids.ship_sprite);
