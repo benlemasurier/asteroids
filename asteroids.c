@@ -34,21 +34,6 @@ enum CONTROLS {
   KEY_LCONTROL /* HYPERSPACE! */
 };
 
-enum {
-  LARGE       = 0,
-  LARGE_90    = 1,
-  LARGE_180   = 2,
-  LARGE_270   = 3,
-  MEDIUM      = 4,
-  MEDIUM_90   = 5,
-  MEDIUM_180  = 6,
-  MEDIUM_270  = 7,
-  SMALL       = 8,
-  SMALL_90    = 9,
-  SMALL_180   = 10,
-  SMALL_270   = 11
-};
-
 struct asteroids {
   unsigned long int score;
   unsigned long int high_score;
@@ -91,45 +76,6 @@ wrap_position(VECTOR *position)
     position->y = 0;
   if(position->y < 0)
     position->y = SCREEN_H;
-}
-
-bool
-preload_asteroid_sprites(void)
-{
-  /* FIXME: fugtf */
-  if((asteroids.asteroid_sprites[LARGE] = al_load_bitmap("data/sprites/asteroid/large/default.png")) == NULL)
-    fprintf(stderr, "failed to load large/default.png\n");
-  if((asteroids.asteroid_sprites[LARGE_90] = al_load_bitmap("data/sprites/asteroid/large/90.png")) == NULL)
-    fprintf(stderr, "failed to load large/90.png\n");
-  if((asteroids.asteroid_sprites[LARGE_180] = al_load_bitmap("data/sprites/asteroid/large/180.png")) == NULL)
-    fprintf(stderr, "failed to load large/180.png\n");
-  if((asteroids.asteroid_sprites[LARGE_270] = al_load_bitmap("data/sprites/asteroid/large/270.png")) == NULL)
-    fprintf(stderr, "failed to load large/270.png\n");
-  if((asteroids.asteroid_sprites[MEDIUM] = al_load_bitmap("data/sprites/asteroid/medium/default.png")) == NULL)
-    fprintf(stderr, "failed to load medium/default.png\n");
-  if((asteroids.asteroid_sprites[MEDIUM_90] = al_load_bitmap("data/sprites/asteroid/medium/90.png")) == NULL)
-    fprintf(stderr, "failed to load medium/90.png\n");
-  if((asteroids.asteroid_sprites[MEDIUM_180] = al_load_bitmap("data/sprites/asteroid/medium/180.png")) == NULL)
-    fprintf(stderr, "failed to load medium/180.png\n");
-  if((asteroids.asteroid_sprites[MEDIUM_270] = al_load_bitmap("data/sprites/asteroid/medium/270.png")) == NULL)
-    fprintf(stderr, "failed to load medium/270.png\n");
-  if((asteroids.asteroid_sprites[SMALL] = al_load_bitmap("data/sprites/asteroid/small/default.png")) == NULL)
-    fprintf(stderr, "failed to load small/default.png\n");
-  if((asteroids.asteroid_sprites[SMALL_90] = al_load_bitmap("data/sprites/asteroid/small/90.png")) == NULL)
-    fprintf(stderr, "failed to load small/90.png\n");
-  if((asteroids.asteroid_sprites[SMALL_180] = al_load_bitmap("data/sprites/asteroid/small/180.png")) == NULL)
-    fprintf(stderr, "failed to load small/180.png\n");
-  if((asteroids.asteroid_sprites[SMALL_270] = al_load_bitmap("data/sprites/asteroid/small/270.png")) == NULL)
-    fprintf(stderr, "failed to load small/270.png\n");
-
-  for(int i = 0; i < 15; i++) {
-    char name[255];
-    sprintf(name, "data/sprites/asteroid/explosion/%d.png", i + 1);
-    if((asteroids.explosion_sprites[i] = al_load_bitmap(name)) == NULL)
-      fprintf(stderr, "failed to load explosion sprite %d\n", i);
-  }
-
-  return true;
 }
 
 static bool
@@ -196,8 +142,15 @@ init(void)
   /* sprite preloading */
   if(!preload_ship_sprites())
     return false;
-  if(!preload_asteroid_sprites())
+  if(!asteroid_init())
     return false;
+
+  for(int i = 0; i < 15; i++) {
+    char name[255];
+    sprintf(name, "data/sprites/asteroid/explosion/%d.png", i + 1);
+    if((asteroids.explosion_sprites[i] = al_load_bitmap(name)) == NULL)
+      fprintf(stderr, "failed to load explosion sprite %d\n", i);
+  }
 
   asteroids.timer = al_create_timer(1.0 / FPS);
   if(!asteroids.timer) {
@@ -255,58 +208,6 @@ create_ship(void)
     ship->missiles[i] = create_missile();
 
   return ship;
-}
-
-ALLEGRO_BITMAP *
-load_asteroid_sprite(uint8_t size, float angle)
-{
-  ALLEGRO_BITMAP *sprite = NULL;
-
-  /* what the fuck?
-   *
-   * rotated bitmaps are horribly pixelated
-   * this is a hack to get nice, clean sprites
-   *
-   * also, this is _terribly_ messy. FIXME */
-  switch(size) {
-    case ASTEROID_LARGE:
-      if(angle < 90.0)
-        sprite = asteroids.asteroid_sprites[LARGE];
-      else if(angle < 180.0)
-        sprite = asteroids.asteroid_sprites[LARGE_90];
-      else if(angle < 270.0)
-        sprite = asteroids.asteroid_sprites[LARGE_180];
-      else if(angle < 360.0)
-        sprite = asteroids.asteroid_sprites[LARGE_270];
-      break;
-    case ASTEROID_MEDIUM:
-      if(angle < 90.0)
-        sprite = asteroids.asteroid_sprites[MEDIUM];
-      else if(angle < 180.0)
-        sprite = asteroids.asteroid_sprites[MEDIUM_90];
-      else if(angle < 270.0)
-        sprite = asteroids.asteroid_sprites[MEDIUM_180];
-      else if(angle < 360.0)
-        sprite = asteroids.asteroid_sprites[MEDIUM_270];
-      break;
-    case ASTEROID_SMALL:
-      if(angle < 90.0)
-        sprite = asteroids.asteroid_sprites[SMALL];
-      else if(angle < 180.0)
-        sprite = asteroids.asteroid_sprites[SMALL_90];
-      else if(angle < 270.0)
-        sprite = asteroids.asteroid_sprites[SMALL_180];
-      else if(angle < 360.0)
-        sprite = asteroids.asteroid_sprites[SMALL_270];
-      break;
-  }
-
-  if(!sprite) {
-    fprintf(stderr, "failed to load asteroid sprite.\n");
-    return NULL;
-  }
-
-  return sprite;
 }
 
 static void
@@ -647,18 +548,7 @@ main(void)
   al_destroy_bitmap(asteroids.lives_sprite);
   al_destroy_bitmap(asteroids.ship_sprite);
   al_destroy_bitmap(asteroids.ship_thrust_sprite);
-  al_destroy_bitmap(asteroids.asteroid_sprites[LARGE]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[LARGE_90]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[LARGE_180]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[LARGE_270]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[MEDIUM]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[MEDIUM_90]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[MEDIUM_180]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[MEDIUM_270]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[SMALL]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[SMALL_90]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[SMALL_180]);
-  al_destroy_bitmap(asteroids.asteroid_sprites[SMALL_270]);
+  asteroid_shutdown();
 
   exit(EXIT_SUCCESS);
 }
