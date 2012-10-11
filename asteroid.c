@@ -28,6 +28,58 @@ enum {
 
 static ALLEGRO_BITMAP *sprites[12];
 
+static ALLEGRO_BITMAP *
+load_asteroid_sprite(uint8_t size, float angle)
+{
+  ALLEGRO_BITMAP *sprite = NULL;
+
+  /* what the fuck?
+   *
+   * rotated bitmaps are horribly pixelated
+   * this is a hack to get nice, clean sprites
+   *
+   * also, this is _terribly_ messy. FIXME */
+  switch(size) {
+    case ASTEROID_LARGE:
+      if(angle < 90.0)
+        sprite = sprites[LARGE];
+      else if(angle < 180.0)
+        sprite = sprites[LARGE_90];
+      else if(angle < 270.0)
+        sprite = sprites[LARGE_180];
+      else if(angle < 360.0)
+        sprite = sprites[LARGE_270];
+      break;
+    case ASTEROID_MEDIUM:
+      if(angle < 90.0)
+        sprite = sprites[MEDIUM];
+      else if(angle < 180.0)
+        sprite = sprites[MEDIUM_90];
+      else if(angle < 270.0)
+        sprite = sprites[MEDIUM_180];
+      else if(angle < 360.0)
+        sprite = sprites[MEDIUM_270];
+      break;
+    case ASTEROID_SMALL:
+      if(angle < 90.0)
+        sprite = sprites[SMALL];
+      else if(angle < 180.0)
+        sprite = sprites[SMALL_90];
+      else if(angle < 270.0)
+        sprite = sprites[SMALL_180];
+      else if(angle < 360.0)
+        sprite = sprites[SMALL_270];
+      break;
+  }
+
+  if(!sprite) {
+    fprintf(stderr, "failed to load asteroid sprite.\n");
+    return NULL;
+  }
+
+  return sprite;
+}
+
 ASTEROID *
 create_asteroid(uint8_t size)
 {
@@ -144,56 +196,4 @@ asteroid_update(ASTEROID *asteroid)
   asteroid->position->x += asteroid->velocity->x;
   asteroid->position->y += asteroid->velocity->y;
   wrap_position(asteroid->position);
-}
-
-ALLEGRO_BITMAP *
-load_asteroid_sprite(uint8_t size, float angle)
-{
-  ALLEGRO_BITMAP *sprite = NULL;
-
-  /* what the fuck?
-   *
-   * rotated bitmaps are horribly pixelated
-   * this is a hack to get nice, clean sprites
-   *
-   * also, this is _terribly_ messy. FIXME */
-  switch(size) {
-    case ASTEROID_LARGE:
-      if(angle < 90.0)
-        sprite = sprites[LARGE];
-      else if(angle < 180.0)
-        sprite = sprites[LARGE_90];
-      else if(angle < 270.0)
-        sprite = sprites[LARGE_180];
-      else if(angle < 360.0)
-        sprite = sprites[LARGE_270];
-      break;
-    case ASTEROID_MEDIUM:
-      if(angle < 90.0)
-        sprite = sprites[MEDIUM];
-      else if(angle < 180.0)
-        sprite = sprites[MEDIUM_90];
-      else if(angle < 270.0)
-        sprite = sprites[MEDIUM_180];
-      else if(angle < 360.0)
-        sprite = sprites[MEDIUM_270];
-      break;
-    case ASTEROID_SMALL:
-      if(angle < 90.0)
-        sprite = sprites[SMALL];
-      else if(angle < 180.0)
-        sprite = sprites[SMALL_90];
-      else if(angle < 270.0)
-        sprite = sprites[SMALL_180];
-      else if(angle < 360.0)
-        sprite = sprites[SMALL_270];
-      break;
-  }
-
-  if(!sprite) {
-    fprintf(stderr, "failed to load asteroid sprite.\n");
-    return NULL;
-  }
-
-  return sprite;
 }

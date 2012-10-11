@@ -91,8 +91,5 @@ typedef struct asteroid_t {
 } ASTEROID;
 
 void wrap_position(VECTOR *position);
-SHIP *create_ship(void);
-bool preload_asteroid_sprites(void);
-ALLEGRO_BITMAP *load_asteroid_sprite(uint8_t size, float angle);
 
 #endif /* asteroids_H */
