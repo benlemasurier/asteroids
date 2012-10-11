@@ -25,3 +25,15 @@ ship_free(SHIP *ship)
 
   ship = NULL;
 }
+
+void
+ship_rotate(SHIP *ship, float deg)
+{
+  ship->angle += deg;
+
+  if(ship->angle > 360.0)
+    ship->angle -= 360.0;
+  if(ship->angle < 0)
+    ship->angle += 360.0;
+}
+

@@ -7,5 +7,6 @@
 
 void ship_accelerate(SHIP *ship);
 void ship_free(SHIP *ship);
+void ship_rotate(SHIP *ship, float deg);
 
 #endif /* asteroids_ship_H */

@@ -102,17 +102,6 @@ shutdown(void)
 }
 
 static void
-rotate_ship(SHIP *ship, float deg)
-{
-  ship->angle += deg;
-
-  if(ship->angle > 360.0)
-    ship->angle -= 360.0;
-  if(ship->angle < 0)
-    ship->angle += 360.0;
-}
-
-static void
 wrap_position(VECTOR *position)
 {
   if(position->x > SCREEN_W)
@@ -859,9 +848,9 @@ main(void)
 
       /* rotate */
       if(key[KEY_LEFT])
-        rotate_ship(asteroids.ship, -3);
+        ship_rotate(asteroids.ship, -3);
       if(key[KEY_RIGHT])
-        rotate_ship(asteroids.ship, 3);
+        ship_rotate(asteroids.ship, 3);
 
       /* hyperspace */
       if(key[KEY_LCONTROL])
