@@ -50,8 +50,6 @@ struct asteroids {
   ALLEGRO_DISPLAY *display;
   ALLEGRO_EVENT_QUEUE *event_queue;
 
-  ALLEGRO_BITMAP *ship_sprite;
-  ALLEGRO_BITMAP *ship_thrust_sprite;
   ALLEGRO_BITMAP *lives_sprite;
   ALLEGRO_BITMAP *asteroid_sprites[12];
   ALLEGRO_BITMAP *explosion_sprites[15];
@@ -491,8 +489,7 @@ main(void)
   ship_free(ship);
 
   al_destroy_bitmap(asteroids.lives_sprite);
-  al_destroy_bitmap(asteroids.ship_sprite);
-  al_destroy_bitmap(asteroids.ship_thrust_sprite);
+  ship_shutdown();
   asteroid_shutdown();
 
   exit(EXIT_SUCCESS);

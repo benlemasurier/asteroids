@@ -15,6 +15,7 @@ void ship_hyperspace(SHIP *ship);
 bool ship_init(void);
 void ship_rotate(SHIP *ship, float deg);
 void ship_draw(SHIP *ship, bool thrusting);
+void ship_shutdown(void);
 void ship_update(SHIP *ship);
 
 #endif /* asteroids_ship_H */

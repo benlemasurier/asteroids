@@ -197,6 +197,13 @@ ship_draw(SHIP *ship, bool thrusting)
 }
 
 void
+ship_shutdown(void)
+{
+  al_destroy_bitmap(sprite);
+  al_destroy_bitmap(thrust_sprite);
+}
+
+void
 ship_update(SHIP *ship)
 {
   if(ship->explosion) {
