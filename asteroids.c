@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+#include <assert.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
@@ -54,6 +55,83 @@ static struct asteroids {
   ALLEGRO_BITMAP *lives_sprite;
 } asteroids;
 
+LIST *
+list_create(void)
+{
+  LIST *node = malloc(sizeof(LIST));
+  node->prev = NULL;
+  node->next = NULL;
+  node->data = NULL;
+
+  return node;
+}
+
+LIST *
+list_append(LIST *list, void *data)
+{
+  LIST *new, *last;
+
+  new = list_create();
+  new->data = data;
+
+  if(list) {
+    last = list_last(list);
+    last->next = new;
+    new->prev = last;
+
+    return list;
+  }
+
+  return new;
+}
+
+LIST *
+list_first(LIST *list)
+{
+  if(!list)
+    return list;
+
+  while(list->prev)
+    list = list->prev;
+
+  return list;
+}
+
+LIST *
+list_last(LIST *list)
+{
+  while(list->next)
+    list = list->next;
+
+  return list;
+}
+
+LIST *
+list_remove(LIST *list, void *data)
+{
+  LIST *tmp = list;
+
+  while(tmp) {
+    if(tmp->data != data) {
+      tmp = tmp->next;
+      continue;
+    }
+
+    if(tmp->prev)
+      tmp->prev->next = tmp->next;
+    if(tmp->next)
+      tmp->next->prev = tmp->prev;
+
+    if(tmp == list)
+      list = list->next;
+
+    free(tmp);
+    break;
+  }
+
+  return list;
+}
+
 static void
 shutdown(void)
 {
@@ -81,7 +159,7 @@ draw_score(void)
   sprintf(score, "%02lu", asteroids.score);
 
   al_draw_text(asteroids.large_font,
-      al_map_rgb(255,255,255),
+      al_map_rgb(255, 255, 255),
       SCORE_X,
       SCORE_Y,
       ALLEGRO_ALIGN_RIGHT,
@@ -95,7 +173,7 @@ draw_high_score(void)
   sprintf(score, "%02lu", asteroids.high_score);
 
   al_draw_text(asteroids.small_font,
-      al_map_rgb(255,255,255),
+      al_map_rgb(255, 255, 255),
       SCREEN_W / 2,
       HIGH_SCORE_Y,
       ALLEGRO_ALIGN_CENTRE,
@@ -116,10 +194,15 @@ draw_lives(void)
 }
 
 static void
-draw_asteroids(ASTEROID *asteroid[], uint8_t count)
+draw_asteroids(LIST *rocks)
 {
-  for(int i = 0; i < count; i++)
-    asteroid_draw(asteroid[i]);
+  LIST *head = list_first(rocks);
+  while(head != NULL) {
+    ASTEROID *rock = (ASTEROID *) head->data;
+    asteroid_draw(rock);
+
+    head = head->next;
+  }
 }
 
 static void
@@ -173,6 +256,18 @@ explosions_update(void)
       animation_update(asteroids.explosions[i]);
     else
       remove_explosion(asteroids.explosions[i]);
+}
+
+void
+asteroids_update(LIST *rocks)
+{
+  LIST *head = list_first(rocks);
+  while(head != NULL) {
+    ASTEROID *rock = (ASTEROID *) head->data;
+    asteroid_update(rock);
+
+    head = head->next;
+  }
 }
 
 static bool
@@ -294,42 +389,21 @@ missile_collision(MISSILE *missile, ASTEROID *asteroid)
 static void
 explode_asteroid(ASTEROID *asteroid)
 {
-  int i, j;
   LEVEL *level = asteroids.level;
 
-  if(asteroid->size == ASTEROID_SMALL) {
-    ASTEROID **temp = malloc(sizeof(ASTEROID *) * level->n_asteroids - 1);
+  level->asteroids = list_remove(level->asteroids, asteroid);
 
-    for(i = 0, j = 0; i < level->n_asteroids; i++)
-      if(level->asteroids[i] != asteroid)
-        temp[j] = level->asteroids[i], j++;
+  if(asteroid->size > ASTEROID_SMALL) {
+    ASTEROID *tmp = create_asteroid(asteroid->size - 1);
+    tmp->position->x = asteroid->position->x;
+    tmp->position->y = asteroid->position->y;
+    level->asteroids = list_append(level->asteroids, tmp);
 
-    asteroid_free(asteroid);
-    free(level->asteroids);
-    level->asteroids = temp;
-    level->n_asteroids--;
-
-    return;
+    tmp = create_asteroid(asteroid->size - 1);
+    tmp->position->x = asteroid->position->x;
+    tmp->position->y = asteroid->position->y;
+    level->asteroids = list_append(level->asteroids, tmp);
   }
-
-  /* find the asteroid to destory in the level */
-  for(i = 0; i < level->n_asteroids; i++)
-    if(level->asteroids[i] == asteroid)
-      break;
-
-  level->n_asteroids++;
-  level->asteroids = (ASTEROID **) realloc(level->asteroids, sizeof(ASTEROID *) * level->n_asteroids);
-  if(level->asteroids == NULL)
-    fprintf(stderr, "unable to reallocate memory\n");
-
-  /* replace the asteroid to be destroyed and create another */
-  asteroids.level->asteroids[i] = create_asteroid(asteroid->size - 1);
-  asteroids.level->asteroids[level->n_asteroids - 1] = create_asteroid(asteroid->size - 1);
-
-  asteroids.level->asteroids[i]->position->x = asteroid->position->x;
-  asteroids.level->asteroids[i]->position->y = asteroid->position->y;
-  asteroids.level->asteroids[level->n_asteroids - 1]->position->x = asteroid->position->x;
-  asteroids.level->asteroids[level->n_asteroids - 1]->position->y = asteroid->position->y;
 
   asteroid_free(asteroid);
 }
@@ -373,6 +447,7 @@ main(void)
   al_start_timer(asteroids.timer);
 
   while(!quit) {
+    LIST *head = NULL;
     ALLEGRO_EVENT ev;
     al_wait_for_event(asteroids.event_queue, &ev);
 
@@ -396,32 +471,47 @@ main(void)
         ship_fire(ship, asteroids.timer);
 
       /* ship->asteroid collisions. */
-      for(int i = 0; i < asteroids.level->n_asteroids; i++) {
-        if(asteroid_collision(ship, asteroids.level->asteroids[i])) {
-          asteroids.score += asteroids.level->asteroids[i]->points;
-          explode_asteroid(asteroids.level->asteroids[i]);
+      head = list_first(asteroids.level->asteroids);
+      while(head) {
+        ASTEROID *asteroid = (ASTEROID *) head->data;
+
+        if(ship->explosion != NULL)
+          break;
+
+        if(asteroid_collision(ship, asteroid)) {
+          asteroids.score += asteroid->points;
+          explode_asteroid(asteroid);
+
           if(ship_explode(ship))
             asteroids.lives--;
+
+          head = list_first(asteroids.level->asteroids);
         }
+
+        head = head->next;
       }
 
       /* missile->asteroid collisions. FIXME: who made this mess? */
       for(int i = 0; i < MAX_MISSILES; i++) {
         if(ship->missiles[i]->active) {
-          for(int j = 0; j < asteroids.level->n_asteroids; j++) {
-            if(missile_collision(ship->missiles[i], asteroids.level->asteroids[j])) {
-              missile_explode_asteroid(ship->missiles[i], asteroids.level->asteroids[j]);
-              i = 0;
-              j = 0;
+          head = list_first(asteroids.level->asteroids);
+          while(head) {
+            ASTEROID *asteroid = (ASTEROID *) head->data;
+
+            if(missile_collision(ship->missiles[i], asteroid)) {
+              missile_explode_asteroid(ship->missiles[i], asteroid);
+              head = list_first(asteroids.level->asteroids);
               continue;
             }
+
+            head = head->next;
           }
         }
       }
 
       /* update positions */
       ship_update(ship);
-      asteroid_update_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
+      asteroids_update(asteroids.level->asteroids);
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
           update_missile(ship->missiles[i], asteroids.timer);
@@ -480,7 +570,7 @@ main(void)
       draw_high_score();
       ship_draw(ship, key[KEY_UP]);
       draw_missiles(ship->missiles, MAX_MISSILES);
-      draw_asteroids(asteroids.level->asteroids, asteroids.level->n_asteroids);
+      draw_asteroids(asteroids.level->asteroids);
       explosions_draw();
 
       al_flip_display();
@@ -495,10 +585,12 @@ main(void)
   if(asteroids.display != NULL)
     al_destroy_display(asteroids.display);
 
-  for(int i = 0; i < MAX_MISSILES; i++)
-    missile_free(ship->missiles[i]);
-  for(int i = 0; i < asteroids.level->n_asteroids; i++)
-    asteroid_free(asteroids.level->asteroids[i]);
+  LIST *head = list_first(asteroids.level->asteroids);
+  while(head != NULL) {
+    ASTEROID *rock = (ASTEROID *) head->data;
+    asteroid_free(rock);
+    head = head->next;
+  }
   ship_free(ship);
 
   al_destroy_bitmap(asteroids.lives_sprite);

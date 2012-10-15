@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+#include <assert.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
@@ -41,7 +42,7 @@ ship_create(void)
   ship->position->x = SCREEN_W / 2;
   ship->position->y = SCREEN_H / 2;
   ship->explosion   = NULL;
-  ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
+  ship->missiles = malloc(sizeof(MISSILE) * MAX_MISSILES);
   ship->thrust_visible = false;
   ship->fire_debounce  = false;
 
@@ -67,8 +68,9 @@ ship_explode(SHIP *ship)
   ANIMATION *explosion = animation_new(explosion_sprites, 60);
 
   // explosion->slowdown = 10;
-  explosion->position->x = ship->position->x - (explosion->width  / 2);
-  explosion->position->y = ship->position->y - (explosion->height / 2);
+  memcpy(explosion->position, ship->position, sizeof(VECTOR));
+  explosion->position->x -= (explosion->width  / 2);
+  explosion->position->y -= (explosion->height / 2);
 
   ship->explosion = explosion;
 
@@ -110,6 +112,9 @@ ship_free(SHIP *ship)
 {
   if(ship->explosion != NULL)
     animation_free(ship->explosion);
+
+  for(int i = 0; i < MAX_MISSILES; i++)
+    missile_free(ship->missiles[i]);
 
   free(ship->position);
   free(ship->velocity);
