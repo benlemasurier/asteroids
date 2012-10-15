@@ -1,11 +1,15 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include <assert.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
+#include "util.h"
 #include "asteroids.h"
 #include "saucer.h"
 
@@ -74,4 +78,15 @@ saucer_shutdown(void)
 {
   al_destroy_bitmap(small_sprite);
   al_destroy_bitmap(large_sprite);
+}
+
+void
+saucer_update(SAUCER *saucer)
+{
+  saucer->velocity->x += (float)   sin(deg2rad(saucer->angle));
+  saucer->velocity->y += (float) -(cos(deg2rad(saucer->angle)));
+
+  saucer->position->x += saucer->velocity->x;
+  saucer->position->y += saucer->velocity->y;
+  wrap_position(saucer->position);
 }

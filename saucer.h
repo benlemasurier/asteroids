@@ -20,5 +20,6 @@ typedef struct saucer_t {
 bool saucer_init(void);
 SAUCER *saucer_new(uint8_t size);
 void saucer_free(SAUCER *saucer);
+void saucer_update(SAUCER *saucer);
 
 #endif /* asteroids_saucer_H */
