@@ -22,6 +22,7 @@
 #include "util.h"
 #include "ship.h"
 #include "level.h"
+#include "saucer.h"
 #include "missile.h"
 #include "asteroid.h"
 #include "animation.h"
