@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <allegro5/allegro.h>
 
 #include "asteroid.h"
 #include "asteroids.h"
@@ -32,4 +33,10 @@ level_free(LEVEL *level)
   /* FIXME: need list_free() */
 
   free(level);
+}
+
+void
+level_update(LEVEL *level, ALLEGRO_TIMER *timer)
+{
+  return;
 }

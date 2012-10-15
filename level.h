@@ -14,5 +14,6 @@ typedef struct level_t {
 
 LEVEL *create_level(uint8_t level);
 void level_free(LEVEL *level);
+void level_update(LEVEL *level, ALLEGRO_TIMER *timer);
 
 #endif /* asteroids_level_H */

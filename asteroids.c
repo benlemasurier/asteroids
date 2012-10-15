@@ -416,6 +416,7 @@ main(void)
       ship = ship_update(ship, asteroids.timer);
       asteroids_update(asteroids.level->asteroids);
       explosions_update();
+      level_update(asteroids.level, asteroids.timer);
 
       /* ship->asteroid collisions. */
       if(!ship->explosion) {
