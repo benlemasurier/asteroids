@@ -40,6 +40,8 @@ static struct asteroids {
   unsigned long int score;
   unsigned long int high_score;
 
+  uint8_t current_level;
+
   int lives;
   LEVEL *level;
 
@@ -129,11 +131,17 @@ draw_asteroids(LIST *rocks)
 }
 
 static void
-draw_missiles(MISSILE *missiles[], uint8_t count)
+draw_missiles(LIST *missiles)
 {
-  for(int i = 0; i < count; i++)
-    if(missiles[i]->active)
-      missile_draw(missiles[i]);
+  LIST *head = list_first(missiles);
+  while(head) {
+    MISSILE *m = (MISSILE *) head->data;
+
+    if(m->active)
+      missile_draw(m);
+
+    head = head->next;
+  }
 }
 
 static void
@@ -344,11 +352,12 @@ missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
 int
 main(void)
 {
-  asteroids.score       = 0;
-  asteroids.lives       = START_LIVES;
-  asteroids.display     = NULL;
-  asteroids.timer       = NULL;
-  asteroids.event_queue = NULL;
+  asteroids.score         = 0;
+  asteroids.lives         = START_LIVES;
+  asteroids.display       = NULL;
+  asteroids.timer         = NULL;
+  asteroids.event_queue   = NULL;
+  asteroids.current_level = 1;
   SHIP *ship;
 
   bool redraw = true;
@@ -364,7 +373,7 @@ main(void)
   if(!(ship = ship_create()))
     exit(EXIT_FAILURE);
 
-  asteroids.level = create_level(4);
+  asteroids.level = create_level(asteroids.current_level);
 
   al_flip_display();
   al_start_timer(asteroids.timer);
@@ -393,6 +402,15 @@ main(void)
       if(key[KEY_SPACE])
         ship_fire(ship, asteroids.timer);
 
+      /* are we out of asteroids to destroy? */
+      if(list_length(asteroids.level->asteroids) == 0) {
+        asteroids.current_level += 1; /* TODO: levels have a ceiling, what is it? */
+        LEVEL *old = asteroids.level;
+        asteroids.level = create_level(asteroids.current_level);
+        level_free(old);
+        al_rest(2.0);
+      }
+
       /* update positions */
       ship = ship_update(ship, asteroids.timer);
       asteroids_update(asteroids.level->asteroids);
@@ -419,21 +437,26 @@ main(void)
       }
 
       /* missile->asteroid collisions. FIXME: who made this mess? */
-      for(int i = 0; i < MAX_MISSILES; i++) {
-        if(ship->missiles[i]->active) {
-          head = list_first(asteroids.level->asteroids);
-          while(head) {
-            ASTEROID *asteroid = (ASTEROID *) head->data;
+      LIST *missile_head = list_first(ship->missiles);
+      while(missile_head) {
+        MISSILE *m = (MISSILE *) missile_head->data;
 
-            if(missile_collision(ship->missiles[i], asteroid)) {
-              missile_explode_asteroid(ship->missiles[i], asteroid);
-              head = list_first(asteroids.level->asteroids);
+        if(m->active) {
+          LIST *rocks = list_first(asteroids.level->asteroids);
+          while(rocks) {
+            ASTEROID *a = (ASTEROID *) rocks->data;
+
+            if(missile_collision(m, a)) {
+              missile_explode_asteroid(m, a);
+              rocks = list_first(asteroids.level->asteroids);
               continue;
             }
 
-            head = head->next;
+            rocks = rocks->next;
           }
         }
+
+        missile_head = missile_head->next;
       }
 
       redraw = true;
@@ -488,7 +511,7 @@ main(void)
       draw_lives();
       draw_high_score();
       ship_draw(ship, key[KEY_UP]);
-      draw_missiles(ship->missiles, MAX_MISSILES);
+      draw_missiles(ship->missiles);
       draw_asteroids(asteroids.level->asteroids);
       explosions_draw();
 

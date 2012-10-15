@@ -7,6 +7,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
+#include "list.h"
 #include "util.h"
 #include "missile.h"
 #include "animation.h"
@@ -27,9 +28,10 @@ ship_accelerate(SHIP *ship)
 SHIP *
 ship_create(void)
 {
-  SHIP *ship = malloc(sizeof(SHIP));
+  SHIP *ship     = malloc(sizeof(SHIP));
   ship->position = malloc(sizeof(VECTOR));
   ship->velocity = malloc(sizeof(VECTOR));
+  ship->missiles = NULL;
 
   ship->sprite = sprite;
   ship->thrust_sprite = thrust_sprite;
@@ -42,12 +44,12 @@ ship_create(void)
   ship->position->x = SCREEN_W / 2;
   ship->position->y = SCREEN_H / 2;
   ship->explosion   = NULL;
-  ship->missiles = malloc(sizeof(MISSILE *) * MAX_MISSILES);
+  ship->missiles    = NULL;
   ship->thrust_visible = false;
   ship->fire_debounce  = false;
 
   for(int i = 0; i < MAX_MISSILES; i++)
-    ship->missiles[i] = create_missile();
+    ship->missiles = list_append(ship->missiles, create_missile());
 
   return ship;
 }
@@ -79,6 +81,7 @@ ship_explode(SHIP *ship)
 void
 ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
 {
+  LIST *head = NULL;
   MISSILE *missile = NULL;
 
   /* full button press required for each missile */
@@ -86,9 +89,14 @@ ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
     return;
 
   /* find an inactive missile to launch */
-  for(int i = 0; i < MAX_MISSILES && missile == NULL; i++)
-    if(!ship->missiles[i]->active)
-      missile = ship->missiles[i];
+  head = list_first(ship->missiles);
+  while(head && !missile) {
+    MISSILE *m = (MISSILE *) head->data;
+    if(!m->active)
+      missile = m;
+
+    head = head->next;
+  }
 
   /* all missiles in use? */
   if(missile == NULL)
@@ -109,11 +117,18 @@ ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
 void
 ship_free(SHIP *ship)
 {
+  LIST *head;
+
   if(ship->explosion)
     animation_free(ship->explosion);
 
-  for(int i = 0; i < MAX_MISSILES; i++)
-    missile_free(ship->missiles[i]);
+  head = list_first(ship->missiles);
+  while(head) {
+    missile_free((MISSILE *) head->data);
+    head = head->next;
+  }
+
+  // FIXME: free missile list
 
   free(ship->missiles);
   free(ship->position);
@@ -211,6 +226,8 @@ ship_shutdown(void)
 SHIP *
 ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
 {
+  LIST *head = NULL;
+
   if(ship->explosion) {
     animation_update(ship->explosion);
 
@@ -226,9 +243,11 @@ ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
   }
 
   /* ship missile positions */
-  for(int i = 0; i < MAX_MISSILES; i++)
-    if(ship->missiles[i]->active)
-      update_missile(ship->missiles[i], timer);
+  head = list_first(ship->missiles);
+  while(head) {
+    update_missile((MISSILE *) head->data, timer);
+    head = head->next;
+  }
 
   ship->position->x += ship->velocity->x;
   ship->position->y += ship->velocity->y;

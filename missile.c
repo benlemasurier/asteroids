@@ -60,7 +60,6 @@ create_missile(void)
   missile->angle  = 0;
   missile->active = false;
 
-  assert(missile->sprite != NULL);
   if(!missile->sprite) {
     free(missile->position);
     free(missile->velocity);

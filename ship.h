@@ -14,7 +14,7 @@ typedef struct ship_t {
   bool fire_debounce;
   bool hyper_debounce;
 
-  MISSILE **missiles;
+  LIST *missiles;
 
   float angle;
   VECTOR *position;

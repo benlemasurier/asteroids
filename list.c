@@ -33,6 +33,20 @@ list_append(LIST *list, void *data)
   return new;
 }
 
+unsigned int
+list_length(LIST *list)
+{
+  unsigned int length = 0;
+  LIST *head = list_first(list);
+
+  while(head) {
+    length++;
+    head = head->next;
+  }
+
+  return length;
+}
+
 LIST *
 list_first(LIST *list)
 {
