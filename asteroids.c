@@ -395,6 +395,11 @@ main(void)
       if(key[KEY_SPACE])
         ship_fire(ship, asteroids.timer);
 
+      /* update positions */
+      ship_update(ship, asteroids.timer);
+      asteroid_update_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
+      explosions_update();
+
       /* ship->asteroid collisions. */
       if(!ship->explosion) {
         for(int i = 0; i < asteroids.level->n_asteroids; i++) {
@@ -420,15 +425,6 @@ main(void)
           }
         }
       }
-
-      /* update positions */
-      ship_update(ship);
-      asteroid_update_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
-      /* TODO: make this a function in asteroids.c */
-      for(int i = 0; i < MAX_MISSILES; i++)
-        if(ship->missiles[i]->active)
-          update_missile(ship->missiles[i], asteroids.timer);
-      explosions_update();
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {

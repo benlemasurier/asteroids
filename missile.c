@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <assert.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 

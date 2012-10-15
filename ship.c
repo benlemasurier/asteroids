@@ -109,7 +109,6 @@ ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
 void
 ship_free(SHIP *ship)
 {
-  assert(ship);
   if(ship->explosion)
     animation_free(ship->explosion);
 
@@ -206,13 +205,13 @@ ship_shutdown(void)
 }
 
 void
-ship_update(SHIP *ship)
+ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
 {
   if(ship->explosion) {
     animation_update(ship->explosion);
 
     /* if the animation is complete, create a new ship */
-    if(ship->explosion->current_frame >= ship->explosion->n_frames) {
+    if(ship->explosion->current_frame >= ship->explosion->n_frames - 1) {
       ship_free(ship);
       /* FIXME: need preemptive collision detection, wait() */
       ship = ship_create();
@@ -220,6 +219,11 @@ ship_update(SHIP *ship)
 
     return;
   }
+
+  /* ship missile positions */
+  for(int i = 0; i < MAX_MISSILES; i++)
+    if(ship->missiles[i]->active) /* <-- FIXME: this is failing. */
+      update_missile(ship->missiles[i], timer);
 
   ship->position->x += ship->velocity->x;
   ship->position->y += ship->velocity->y;
