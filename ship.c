@@ -41,7 +41,7 @@ ship_create(void)
   ship->position->x = SCREEN_W / 2;
   ship->position->y = SCREEN_H / 2;
   ship->explosion   = NULL;
-  ship->missiles = malloc(sizeof(struct misssile *) * MAX_MISSILES);
+  ship->missiles = malloc(sizeof(MISSILE *) * MAX_MISSILES);
   ship->thrust_visible = false;
   ship->fire_debounce  = false;
 
