@@ -50,6 +50,12 @@ saucer_new(uint8_t size)
   saucer->position->y = 0.0;
   saucer->angle = 0.0;
 
+  saucer->angle = rand_f(0.0, 360.0);
+  saucer->position->x = rand_f(1.0, SCREEN_W);
+  saucer->position->y = rand_f(1.0, SCREEN_H);
+  saucer->velocity->x = (float)   sin(deg2rad(saucer->angle))  * rand_f(0.5, 1.2);
+  saucer->velocity->y = (float) -(cos(deg2rad(saucer->angle))) * rand_f(0.5, 1.2);
+
   saucer->size  = size;
   switch(saucer->size) {
     case SAUCER_SMALL:
