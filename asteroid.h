@@ -30,6 +30,5 @@ void asteroid_free(ASTEROID *asteroid);
 bool asteroid_init(void);
 void asteroid_shutdown(void);
 void asteroid_update(ASTEROID *asteroid);
-void asteroid_update_all(ASTEROID *asteroids[], uint8_t count);
 
 #endif /* asteroids_asteroid_H */

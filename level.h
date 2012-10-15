@@ -5,8 +5,7 @@
 #include "asteroids.h"
 
 typedef struct level_t {
-  int n_asteroids;
-  ASTEROID **asteroids;
+  LIST *asteroids;
 } LEVEL;
 
 LEVEL *create_level(int n_asteroids);
