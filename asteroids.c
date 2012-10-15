@@ -81,7 +81,7 @@ draw_score(void)
   sprintf(score, "%02lu", asteroids.score);
 
   al_draw_text(asteroids.large_font,
-      al_map_rgb(255,255,255),
+      al_map_rgb(WHITE),
       SCORE_X,
       SCORE_Y,
       ALLEGRO_ALIGN_RIGHT,
@@ -95,7 +95,7 @@ draw_high_score(void)
   sprintf(score, "%02lu", asteroids.high_score);
 
   al_draw_text(asteroids.small_font,
-      al_map_rgb(255,255,255),
+      al_map_rgb(WHITE),
       SCREEN_W / 2,
       HIGH_SCORE_Y,
       ALLEGRO_ALIGN_CENTRE,
@@ -422,6 +422,7 @@ main(void)
       /* update positions */
       ship_update(ship);
       asteroid_update_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
+      /* TODO: make this a function in asteroids.c */
       for(int i = 0; i < MAX_MISSILES; i++)
         if(ship->missiles[i]->active)
           update_missile(ship->missiles[i], asteroids.timer);
@@ -473,7 +474,7 @@ main(void)
 
     if(redraw && al_is_event_queue_empty(asteroids.event_queue)) {
       redraw = false;
-      al_clear_to_color(al_map_rgb(0, 0, 0));
+      al_clear_to_color(al_map_rgb(BLACK));
 
       draw_score();
       draw_lives();

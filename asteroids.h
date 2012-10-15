@@ -10,6 +10,9 @@
 #define SCREEN_W 800
 #define SCREEN_H 600
 
+#define BLACK 0,0,0
+#define WHITE 255,255,255
+
 #define MISSILE_SPEED 8
 #define MAX_MISSILES  4
 #define START_LIVES   3
