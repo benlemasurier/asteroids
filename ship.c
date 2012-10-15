@@ -208,7 +208,7 @@ ship_shutdown(void)
   al_destroy_bitmap(thrust_sprite);
 }
 
-void
+SHIP *
 ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
 {
   if(ship->explosion) {
@@ -216,17 +216,18 @@ ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
 
     /* if the animation is complete, create a new ship */
     if(ship->explosion->current_frame >= ship->explosion->n_frames - 1) {
-      ship_free(ship);
       /* FIXME: need preemptive collision detection, wait() */
+      SHIP *old = ship;
       ship = ship_create();
+      ship_free(old);
     }
 
-    return;
+    return ship;
   }
 
   /* ship missile positions */
   for(int i = 0; i < MAX_MISSILES; i++)
-    if(ship->missiles[i]->active) /* <-- FIXME: this is failing. */
+    if(ship->missiles[i]->active)
       update_missile(ship->missiles[i], timer);
 
   ship->position->x += ship->velocity->x;
@@ -235,5 +236,7 @@ ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
 
   /* slow down over time */
   ship_drag(ship);
+
+  return ship;
 }
 

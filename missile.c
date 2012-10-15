@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <math.h>
 #include <assert.h>
 #include <allegro5/allegro.h>
@@ -52,10 +53,14 @@ create_missile(void)
   missile->position = malloc(sizeof(VECTOR));
   missile->velocity = malloc(sizeof(VECTOR));
 
+  /* FIXME: preload missile sprite */
   missile->sprite = al_load_bitmap("data/sprites/missile.png");
   missile->width  = al_get_bitmap_width(missile->sprite);
   missile->height = al_get_bitmap_height(missile->sprite);
+  missile->angle  = 0;
+  missile->active = false;
 
+  assert(missile->sprite != NULL);
   if(!missile->sprite) {
     free(missile->position);
     free(missile->velocity);
@@ -64,8 +69,6 @@ create_missile(void)
 
     return NULL;
   }
-
-  missile->active = false;
 
   return missile;
 }

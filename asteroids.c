@@ -396,7 +396,7 @@ main(void)
         ship_fire(ship, asteroids.timer);
 
       /* update positions */
-      ship_update(ship, asteroids.timer);
+      ship = ship_update(ship, asteroids.timer);
       asteroid_update_all(asteroids.level->asteroids, asteroids.level->n_asteroids);
       explosions_update();
 
