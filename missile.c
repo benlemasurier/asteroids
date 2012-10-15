@@ -54,7 +54,7 @@ create_missile(void)
   missile->velocity = malloc(sizeof(VECTOR));
 
   /* FIXME: preload missile sprite */
-  missile->sprite = al_load_bitmap("data/sprites/missile.png");
+  missile->sprite = al_load_bitmap("data/sprites/missile/missile.png");
   missile->width  = al_get_bitmap_width(missile->sprite);
   missile->height = al_get_bitmap_height(missile->sprite);
   missile->angle  = 0;

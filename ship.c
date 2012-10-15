@@ -154,12 +154,12 @@ ship_hyperspace(SHIP *ship)
 bool
 ship_init(void)
 {
-  if((sprite = al_load_bitmap("data/sprites/ship.png")) == NULL) {
+  if((sprite = al_load_bitmap("data/sprites/ship/ship.png")) == NULL) {
     fprintf(stderr, "failed to load ship sprite\n");
     return false;
   }
 
-  if((thrust_sprite = al_load_bitmap("data/sprites/ship-thrust.png")) == NULL) {
+  if((thrust_sprite = al_load_bitmap("data/sprites/ship/ship-thrust.png")) == NULL) {
     fprintf(stderr, "failed to load ship thrust sprite\n");
     return false;
   }

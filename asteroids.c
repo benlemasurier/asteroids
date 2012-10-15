@@ -218,7 +218,7 @@ init(void)
   asteroids.large_font = al_load_ttf_font("data/vectorb.ttf", 24, 0);
 
   /* lives sprite */
-  asteroids.lives_sprite = al_load_bitmap("data/sprites/ship.png");
+  asteroids.lives_sprite = al_load_bitmap("data/sprites/ship/ship.png");
   if(!asteroids.lives_sprite) {
     fprintf(stderr, "failed to load lives sprite.\n");
     return false;
