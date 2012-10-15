@@ -396,12 +396,14 @@ main(void)
         ship_fire(ship, asteroids.timer);
 
       /* ship->asteroid collisions. */
-      for(int i = 0; i < asteroids.level->n_asteroids; i++) {
-        if(asteroid_collision(ship, asteroids.level->asteroids[i])) {
-          asteroids.score += asteroids.level->asteroids[i]->points;
-          explode_asteroid(asteroids.level->asteroids[i]);
-          if(ship_explode(ship))
-            asteroids.lives--;
+      if(!ship->explosion) {
+        for(int i = 0; i < asteroids.level->n_asteroids; i++) {
+          if(asteroid_collision(ship, asteroids.level->asteroids[i])) {
+            asteroids.score += asteroids.level->asteroids[i]->points;
+            explode_asteroid(asteroids.level->asteroids[i]);
+            if(ship_explode(ship))
+              asteroids.lives--;
+          }
         }
       }
 

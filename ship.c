@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <math.h>
+#include <assert.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
@@ -108,7 +109,8 @@ ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
 void
 ship_free(SHIP *ship)
 {
-  if(ship->explosion != NULL)
+  assert(ship);
+  if(ship->explosion)
     animation_free(ship->explosion);
 
   free(ship->position);
