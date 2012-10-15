@@ -17,6 +17,7 @@ typedef struct saucer_t {
   ALLEGRO_BITMAP *sprite;
 } SAUCER;
 
+void saucer_draw(SAUCER *saucer);
 bool saucer_init(void);
 SAUCER *saucer_new(uint8_t size);
 void saucer_free(SAUCER *saucer);

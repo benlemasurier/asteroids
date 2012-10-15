@@ -19,6 +19,16 @@
 static ALLEGRO_BITMAP *small_sprite = NULL;
 static ALLEGRO_BITMAP *large_sprite = NULL;
 
+void
+saucer_draw(SAUCER *saucer)
+{
+  al_draw_bitmap(
+      saucer->sprite,
+      saucer->position->x,
+      saucer->position->y,
+      DRAWING_FLAGS);
+}
+
 bool
 saucer_init(void)
 {
