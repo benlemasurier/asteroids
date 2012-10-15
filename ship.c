@@ -112,6 +112,10 @@ ship_free(SHIP *ship)
   if(ship->explosion)
     animation_free(ship->explosion);
 
+  for(int i = 0; i < MAX_MISSILES; i++)
+    missile_free(ship->missiles[i]);
+
+  free(ship->missiles);
   free(ship->position);
   free(ship->velocity);
   free(ship);

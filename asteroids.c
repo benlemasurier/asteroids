@@ -494,8 +494,6 @@ main(void)
   if(asteroids.display != NULL)
     al_destroy_display(asteroids.display);
 
-  for(int i = 0; i < MAX_MISSILES; i++)
-    missile_free(ship->missiles[i]);
   for(int i = 0; i < asteroids.level->n_asteroids; i++)
     asteroid_free(asteroids.level->asteroids[i]);
   ship_free(ship);
@@ -503,6 +501,8 @@ main(void)
   al_destroy_bitmap(asteroids.lives_sprite);
   ship_shutdown();
   asteroid_shutdown();
+
+  al_uninstall_keyboard();
 
   exit(EXIT_SUCCESS);
 }
