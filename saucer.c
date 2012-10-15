@@ -6,6 +6,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
+#include "asteroids.h"
 #include "saucer.h"
 
 #define SMALL_POINTS 1000;
@@ -22,8 +23,8 @@ saucer_init(void)
     return false;
   }
 
-  if((small_sprite = al_load_bitmap("data/sprites/saucer/saucer-small.png")) == NULL) {
-    fprintf(stderr, "failed to load small saucer sprite\n");
+  if((large_sprite = al_load_bitmap("data/sprites/saucer/saucer-large.png")) == NULL) {
+    fprintf(stderr, "failed to load large saucer sprite\n");
     return false;
   }
 
@@ -36,9 +37,16 @@ saucer_new(uint8_t size)
   assert(small_sprite);
   assert(large_sprite);
 
-  SAUCER *saucer = malloc(sizeof(SAUCER));
-  saucer->size = size;
+  SAUCER *saucer   = malloc(sizeof(SAUCER));
+  saucer->position = malloc(sizeof(VECTOR));
+  saucer->velocity = malloc(sizeof(VECTOR));
+  saucer->velocity->x = 0.0;
+  saucer->velocity->y = 0.0;
+  saucer->position->x = 0.0;
+  saucer->position->y = 0.0;
+  saucer->angle = 0.0;
 
+  saucer->size  = size;
   switch(saucer->size) {
     case SAUCER_SMALL:
       saucer->sprite = small_sprite;
@@ -56,6 +64,8 @@ saucer_new(uint8_t size)
 void
 saucer_free(SAUCER *saucer)
 {
+  free(saucer->position);
+  free(saucer->velocity);
   free(saucer);
 }
 

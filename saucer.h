@@ -10,6 +10,10 @@ typedef struct saucer_t {
   uint8_t size;
   unsigned int points;
 
+  float angle;
+  VECTOR *position;
+  VECTOR *velocity;
+
   ALLEGRO_BITMAP *sprite;
 } SAUCER;
 
