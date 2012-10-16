@@ -36,7 +36,10 @@ level_free(LEVEL *level)
 }
 
 void
-level_update(LEVEL *level, ALLEGRO_TIMER *timer)
+level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer)
 {
+  if(level->saucer)
+    saucer_update(level->saucer, ship, timer);
+
   return;
 }

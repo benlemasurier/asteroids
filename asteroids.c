@@ -228,6 +228,8 @@ init(void)
   /* sprite preloading */
   if(!ship_init())
     return false;
+  if(!saucer_init())
+    return false;
   if(!asteroid_init())
     return false;
   if(!explosion_init())
@@ -280,7 +282,7 @@ collision(float b1_x, float b1_y, int b1_w, int b1_h,
 }
 
 static bool
-asteroid_collision(SHIP *ship, ASTEROID *asteroid)
+asteroid_ship_collision(SHIP *ship, ASTEROID *asteroid)
 {
   float ship_x = ship->position->x - (ship->width  / 2);
   float ship_y = ship->position->y - (ship->height / 2);
@@ -288,6 +290,18 @@ asteroid_collision(SHIP *ship, ASTEROID *asteroid)
   float rock_y = asteroid->position->y - (asteroid->height / 2);
 
   return collision(ship_x, ship_y, ship->width, ship->height,
+                   rock_x, rock_y, asteroid->width, asteroid->height);
+}
+
+static bool
+asteroid_saucer_collision(SAUCER *saucer, ASTEROID *asteroid)
+{
+  float saucer_x = saucer->position->x - (saucer->width  / 2);
+  float saucer_y = saucer->position->y - (saucer->height / 2);
+  float rock_x = asteroid->position->x - (asteroid->width  / 2);
+  float rock_y = asteroid->position->y - (asteroid->height / 2);
+
+  return collision(saucer_x, saucer_y, saucer->width, saucer->height,
                    rock_x, rock_y, asteroid->width, asteroid->height);
 }
 
@@ -332,7 +346,7 @@ static void
 asteroids_update(LIST *rocks)
 {
   LIST *head = list_first(rocks);
-  while(head != NULL) {
+  while(head) {
     ASTEROID *rock = (ASTEROID *) head->data;
     asteroid_update(rock);
 
@@ -348,6 +362,14 @@ missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
 
   new_explosion(missile->position);
   explode_asteroid(asteroid);
+}
+
+static int64_t
+seconds_elapsed(ALLEGRO_TIMER *timer)
+{
+  /* FIXME: this is correct at 60FPS, but probably
+     not how timers actually work */
+  return(al_get_timer_count(timer) / FPS);
 }
 
 int
@@ -403,6 +425,13 @@ main(void)
       if(key[KEY_SPACE])
         ship_fire(ship, asteroids.timer);
 
+      /* TESTING: saucers */
+      if(seconds_elapsed(asteroids.timer) == 10) {
+        if(!asteroids.level->saucer) {
+          asteroids.level->saucer = saucer_new(SAUCER_LARGE);
+        }
+      }
+
       /* are we out of asteroids to destroy? */
       if(list_length(asteroids.level->asteroids) == 0) {
         asteroids.current_level += 1; /* TODO: levels have a ceiling, what is it? */
@@ -416,7 +445,7 @@ main(void)
       ship = ship_update(ship, asteroids.timer);
       asteroids_update(asteroids.level->asteroids);
       explosions_update();
-      level_update(asteroids.level, asteroids.timer);
+      level_update(asteroids.level, ship, asteroids.timer);
 
       /* ship->asteroid collisions. */
       if(!ship->explosion) {
@@ -424,7 +453,7 @@ main(void)
         while(head) {
           ASTEROID *asteroid = (ASTEROID *) head->data;
 
-          if(asteroid_collision(ship, asteroid)) {
+          if(asteroid_ship_collision(ship, asteroid)) {
             asteroids.score += asteroid->points;
             explode_asteroid(asteroid);
 
@@ -460,6 +489,27 @@ main(void)
 
         missile_head = missile_head->next;
       }
+
+      /* saucer->asteroid collisions. */
+      if(asteroids.level->saucer) {
+        head = list_first(asteroids.level->asteroids);
+        while(head && asteroids.level->saucer) {
+          ASTEROID *asteroid = (ASTEROID *) head->data;
+
+          if(asteroid_saucer_collision(asteroids.level->saucer, asteroid)) {
+            new_explosion(asteroid->position);
+            explode_asteroid(asteroid);
+            saucer_free(asteroids.level->saucer);
+            asteroids.level->saucer = NULL;
+          }
+
+          head = head->next;
+        }
+      }
+
+      /* saucer missiles */
+      if(asteroids.level->saucer)
+        saucer_fire(asteroids.level->saucer, ship, asteroids.timer);
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -516,6 +566,8 @@ main(void)
       draw_missiles(ship->missiles);
       draw_asteroids(asteroids.level->asteroids);
       explosions_draw();
+      if(asteroids.level->saucer)
+        saucer_draw(asteroids.level->saucer);
 
       al_flip_display();
     }

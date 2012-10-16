@@ -1,3 +1,6 @@
+#ifndef asteroids_list_H
+#define asteroids_list_H
+
 typedef struct list_t {
   void *data;
   struct list_t *prev;
@@ -10,3 +13,5 @@ unsigned int list_length(LIST *list);
 LIST *list_first(LIST *list);
 LIST *list_last(LIST *list);
 LIST *list_remove(LIST *list, void *data);
+
+#endif /* asteroids_list_H */

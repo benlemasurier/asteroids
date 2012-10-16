@@ -1,6 +1,7 @@
 #ifndef asteroids_ship_H
 #define asteroids_ship_H
 
+#include  "list.h"
 #include "missile.h"
 #include "animation.h"
 #include "asteroids.h"

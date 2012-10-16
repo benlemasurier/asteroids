@@ -11,10 +11,12 @@
 
 #include "util.h"
 #include "asteroids.h"
+#include "missile.h"
+#include "ship.h"
 #include "saucer.h"
 
-#define SMALL_POINTS 1000;
-#define LARGE_POINTS 250;
+#define SMALL_POINTS 1000
+#define LARGE_POINTS 250 // FIXME: is this correct?
 
 static ALLEGRO_BITMAP *small_sprite = NULL;
 static ALLEGRO_BITMAP *large_sprite = NULL;
@@ -22,11 +24,15 @@ static ALLEGRO_BITMAP *large_sprite = NULL;
 void
 saucer_draw(SAUCER *saucer)
 {
+  assert(saucer);
   al_draw_bitmap(
       saucer->sprite,
       saucer->position->x,
       saucer->position->y,
       DRAWING_FLAGS);
+
+  if(saucer->missile->active)
+    missile_draw(saucer->missile);
 }
 
 bool
@@ -54,19 +60,14 @@ saucer_new(uint8_t size)
   SAUCER *saucer   = malloc(sizeof(SAUCER));
   saucer->position = malloc(sizeof(VECTOR));
   saucer->velocity = malloc(sizeof(VECTOR));
-  saucer->velocity->x = 0.0;
-  saucer->velocity->y = 0.0;
-  saucer->position->x = 0.0;
-  saucer->position->y = 0.0;
-  saucer->angle = 0.0;
-
-  saucer->angle = rand_f(0.0, 360.0);
   saucer->position->x = rand_f(1.0, SCREEN_W);
   saucer->position->y = rand_f(1.0, SCREEN_H);
-  saucer->velocity->x = (float)   sin(deg2rad(saucer->angle))  * rand_f(0.5, 1.2);
-  saucer->velocity->y = (float) -(cos(deg2rad(saucer->angle))) * rand_f(0.5, 1.2);
+  saucer->angle       = rand_f(0.0, 360.0);
+  saucer->velocity->x = (float)   sin(deg2rad(saucer->angle));
+  saucer->velocity->y = (float) -(cos(deg2rad(saucer->angle)));
+  saucer->missile     = create_missile();
 
-  saucer->size  = size;
+  saucer->size = size;
   switch(saucer->size) {
     case SAUCER_SMALL:
       saucer->sprite = small_sprite;
@@ -78,7 +79,34 @@ saucer_new(uint8_t size)
       break;
   }
 
+  saucer->width  = al_get_bitmap_width(saucer->sprite);
+  saucer->height = al_get_bitmap_height(saucer->sprite);
+
   return saucer;
+}
+
+void
+saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
+{
+  MISSILE *missile = saucer->missile;
+
+  /* missiles in use? */
+  if(missile->active)
+    return;
+
+  /* FIXME: testing */
+  missile->active = true;
+  missile->position->x = saucer->position->x + (saucer->width  / 2);
+  missile->position->y = saucer->position->y + (saucer->height / 2);
+  missile->time = al_get_timer_count(timer);
+
+  /* calculate the (FIXME: exact) angle to hit the ship */
+  missile->angle = get_angle(ship->position->x, ship->position->y, missile->position->x, missile->position->y);
+  missile->angle = rad2deg(missile->angle);
+  missile->angle = missile->angle - 90.0;
+
+  missile->velocity->x = (float)   sin(deg2rad(missile->angle))  * MISSILE_SPEED;
+  missile->velocity->y = (float) -(cos(deg2rad(missile->angle))) * MISSILE_SPEED;
 }
 
 void
@@ -87,6 +115,7 @@ saucer_free(SAUCER *saucer)
   free(saucer->position);
   free(saucer->velocity);
   free(saucer);
+  saucer = NULL;
 }
 
 void
@@ -97,12 +126,14 @@ saucer_shutdown(void)
 }
 
 void
-saucer_update(SAUCER *saucer)
+saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
 {
-  saucer->velocity->x += (float)   sin(deg2rad(saucer->angle));
-  saucer->velocity->y += (float) -(cos(deg2rad(saucer->angle)));
-
   saucer->position->x += saucer->velocity->x;
   saucer->position->y += saucer->velocity->y;
   wrap_position(saucer->position);
+
+  if(!saucer->missile->active)
+    saucer_fire(saucer, ship, timer);
+  else
+    update_missile(saucer->missile, timer);
 }
