@@ -320,6 +320,18 @@ missile_collision(MISSILE *missile, ASTEROID *asteroid)
       rock_x, rock_y, asteroid->width, asteroid->height);
 }
 
+static bool
+saucer_missile_ship_collision(MISSILE *missile, SHIP *ship)
+{
+  float missile_x = missile->position->x - (missile->width   / 2);
+  float missile_y = missile->position->y - (missile->height  / 2);
+  float ship_x = ship->position->x - (ship->width  / 2);
+  float ship_y = ship->position->y - (ship->height / 2);
+
+  return collision(missile_x, missile_y, missile->width, missile->height,
+      ship_x, ship_y, ship->width, ship->height);
+}
+
 static void
 explode_asteroid(ASTEROID *asteroid)
 {
@@ -467,7 +479,7 @@ main(void)
         }
       }
 
-      /* missile->asteroid collisions. FIXME: who made this mess? */
+      /* ship[missile] -> asteroid collisions. FIXME: who made this mess? */
       LIST *missile_head = list_first(ship->missiles);
       while(missile_head) {
         MISSILE *m = (MISSILE *) missile_head->data;
@@ -488,6 +500,18 @@ main(void)
         }
 
         missile_head = missile_head->next;
+      }
+
+      /* saucer[missile] -> ship collisions. */
+      if(asteroids.level->saucer) {
+        if(asteroids.level->saucer->missile) {
+          MISSILE *m = asteroids.level->saucer->missile;
+          if(saucer_missile_ship_collision(m, ship)) {
+            asteroids.lives--;
+            ship_explode(ship);
+            /* TODO: saucer_free(asteroids.level->saucer); */
+          }
+        }
       }
 
       /* saucer->asteroid collisions. */
