@@ -46,8 +46,7 @@ static struct asteroids {
   int lives;
   LEVEL *level;
 
-  uint8_t   n_explosions;
-  ANIMATION **explosions;
+  LIST *explosions;
 
   ALLEGRO_FONT    *small_font;
   ALLEGRO_FONT    *large_font;
@@ -148,46 +147,41 @@ draw_missiles(LIST *missiles)
 static void
 explosions_draw(void)
 {
-  for(int i = 0; i < asteroids.n_explosions; i++)
-    animation_draw(asteroids.explosions[i]);
+  LIST *head = list_first(asteroids.explosions);
+  while(head) {
+    animation_draw((ANIMATION *) head->data);
+    head = head->next;
+  }
 }
 
 static void
 new_explosion(VECTOR *position)
 {
   ANIMATION *explosion = explosion_create(position);
-
-  asteroids.n_explosions++;
-  asteroids.explosions = (ANIMATION **) realloc(asteroids.explosions, sizeof(ANIMATION *) * asteroids.n_explosions);
-  asteroids.explosions[asteroids.n_explosions - 1] = explosion;
+  asteroids.explosions = list_append(asteroids.explosions, explosion);
 }
 
 static void
 remove_explosion(ANIMATION *explosion)
 {
-  ANIMATION **temp = malloc(sizeof(ANIMATION *) * asteroids.n_explosions - 1);
-  for(int i = 0, j = 0; i < asteroids.n_explosions; i++) {
-    if(asteroids.explosions[i] != explosion) {
-      temp[j] = asteroids.explosions[i];
-      j++;
-    }
-  }
-
-  free(asteroids.explosions);
-  asteroids.explosions = temp;
-  asteroids.n_explosions--;
-
+  asteroids.explosions = list_remove(asteroids.explosions, explosion);
   animation_free(explosion);
 }
 
 static void
 explosions_update(void)
 {
-  for(int i = 0; i < asteroids.n_explosions; i++)
-    if(asteroids.explosions[i]->current_frame < asteroids.explosions[i]->n_frames)
-      animation_update(asteroids.explosions[i]);
+  LIST *head = list_first(asteroids.explosions);
+  while(head) {
+    ANIMATION *explosion = (ANIMATION *) head->data;
+
+    if(explosion->current_frame < explosion->n_frames)
+      animation_update(explosion);
     else
-      remove_explosion(asteroids.explosions[i]);
+      remove_explosion(explosion);
+
+    head = head->next;
+  }
 }
 
 static bool
