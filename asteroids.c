@@ -376,12 +376,12 @@ missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
   explode_asteroid(asteroid);
 }
 
-static int64_t
-seconds_elapsed(ALLEGRO_TIMER *timer)
+int64_t
+seconds_elapsed(int64_t time_count)
 {
   /* FIXME: this is correct at 60FPS, but probably
      not how timers actually work */
-  return(al_get_timer_count(timer) / FPS);
+  return(time_count / FPS);
 }
 
 int
@@ -436,13 +436,6 @@ main(void)
       /* shoot */
       if(key[KEY_SPACE])
         ship_fire(ship, asteroids.timer);
-
-      /* TESTING: saucers */
-      if(seconds_elapsed(asteroids.timer) == 10) {
-        if(!asteroids.level->saucer) {
-          asteroids.level->saucer = saucer_new(SAUCER_LARGE, asteroids.level->number);
-        }
-      }
 
       /* are we out of asteroids to destroy? */
       if(list_length(asteroids.level->asteroids) == 0) {

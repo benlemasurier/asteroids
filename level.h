@@ -13,6 +13,7 @@ typedef struct level_t {
   LIST *asteroids;
   SAUCER *saucer;
   uint8_t number;
+  int64_t saucer_seen; /* time since saucer was last seen */
 } LEVEL;
 
 LEVEL *level_create(uint8_t level_number);

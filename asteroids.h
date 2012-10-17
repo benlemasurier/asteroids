@@ -30,5 +30,6 @@ typedef struct vector_t {
 } VECTOR;
 
 void wrap_position(VECTOR *position);
+int64_t seconds_elapsed(int64_t time_count);
 
 #endif /* asteroids_H */
