@@ -12,6 +12,7 @@ enum {
 typedef struct saucer_t {
   uint8_t size;
   unsigned int points;
+  uint8_t level;
 
   uint8_t width;
   uint8_t height;
@@ -27,7 +28,7 @@ typedef struct saucer_t {
 
 void saucer_draw(SAUCER *saucer);
 bool saucer_init(void);
-SAUCER *saucer_new(uint8_t size);
+SAUCER *saucer_new(uint8_t size, uint8_t level);
 void saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer);
 void saucer_free(SAUCER *saucer);
 void saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer);

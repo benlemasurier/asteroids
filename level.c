@@ -14,6 +14,7 @@ create_level(uint8_t level_number)
   LEVEL *level = malloc(sizeof(LEVEL));
   level->asteroids = NULL;
   level->saucer    = NULL;
+  level->number    = level_number;
 
   for(int i = 0; i < level_number + START_ASTEROIDS; i++)
     level->asteroids = list_append(level->asteroids, create_asteroid(ASTEROID_LARGE));

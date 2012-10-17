@@ -428,7 +428,7 @@ main(void)
       /* TESTING: saucers */
       if(seconds_elapsed(asteroids.timer) == 10) {
         if(!asteroids.level->saucer) {
-          asteroids.level->saucer = saucer_new(SAUCER_LARGE);
+          asteroids.level->saucer = saucer_new(SAUCER_LARGE, asteroids.level->number);
         }
       }
 

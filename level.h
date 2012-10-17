@@ -6,11 +6,13 @@
 #include "ship.h"
 #include "saucer.h"
 
+#define LEVEL_MAX 10
 #define START_ASTEROIDS 3
 
 typedef struct level_t {
   LIST *asteroids;
   SAUCER *saucer;
+  uint8_t number;
 } LEVEL;
 
 LEVEL *create_level(uint8_t level);
