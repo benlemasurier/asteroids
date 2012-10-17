@@ -7,7 +7,7 @@
 #include "saucer.h"
 
 #define LEVEL_MAX 10
-#define START_ASTEROIDS 3
+#define MAX_START_ASTEROIDS 14
 
 typedef struct level_t {
   LIST *asteroids;

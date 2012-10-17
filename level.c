@@ -17,7 +17,28 @@ level_create(uint8_t level_number)
   level->number       = level_number;
   level->saucer_seen  = 0;
 
-  for(int i = 0; i < level_number + START_ASTEROIDS; i++)
+  uint8_t n_create;
+  switch(level_number) {
+    case 1:
+      n_create = 4;
+      break;
+    case 2:
+      n_create = 6;
+      break;
+    case 3:
+      n_create = 8;
+      break;
+    case 4:
+      n_create = 10;
+      break;
+    case 5:
+      n_create = 12;
+      break;
+    default:
+      n_create = MAX_START_ASTEROIDS;
+  }
+
+  for(int i = 0; i < n_create; i++)
     level->asteroids = list_append(level->asteroids, asteroid_create(ASTEROID_LARGE));
 
   return level;
