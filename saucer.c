@@ -22,6 +22,13 @@
 static ALLEGRO_BITMAP *small_sprite = NULL;
 static ALLEGRO_BITMAP *large_sprite = NULL;
 
+enum {
+  TOP    = 0,
+  RIGHT  = 1,
+  BOTTOM = 2,
+  LEFT   = 3
+};
+
 void
 saucer_draw(SAUCER *saucer)
 {
@@ -52,17 +59,41 @@ saucer_init(void)
   return true;
 }
 
+static VECTOR *
+random_position(void)
+{
+  uint8_t entry;
+  VECTOR *position = malloc(sizeof(VECTOR));
+
+  /* FIXME: is this the correct way to get 0-3? */
+  entry = (uint8_t) (rand() / (RAND_MAX / 4));
+  switch(entry) {
+    case TOP:
+      position->x = rand_f(0, SCREEN_W);
+      position->y = -10;
+    case RIGHT:
+      position->x = SCREEN_W + 10;
+      position->y = rand_f(0, SCREEN_H);
+    case BOTTOM:
+      position->x = rand_f(0, SCREEN_W);
+      position->y = SCREEN_H + 10;
+    case LEFT:
+      position->x = -10;
+      position->y = rand_f(0, SCREEN_H);
+  }
+
+  return position;
+}
+
 SAUCER *
 saucer_new(uint8_t size, uint8_t level)
 {
   assert(small_sprite);
   assert(large_sprite);
 
-  SAUCER *saucer   = malloc(sizeof(SAUCER));
-  saucer->position = malloc(sizeof(VECTOR));
-  saucer->velocity = malloc(sizeof(VECTOR));
-  saucer->position->x = rand_f(1.0, SCREEN_W);
-  saucer->position->y = rand_f(1.0, SCREEN_H);
+  SAUCER *saucer      = malloc(sizeof(SAUCER));
+  saucer->position    = random_position();
+  saucer->velocity    = malloc(sizeof(VECTOR));
   saucer->angle       = rand_f(0.0, 360.0);
   saucer->level       = level;
   saucer->velocity->x = (float)   sin(deg2rad(saucer->angle));
@@ -94,7 +125,7 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
 
   MISSILE *missile = saucer->missile;
 
-  /* missiles in use? */
+  /* missile in use? */
   if(missile->active)
     return;
 
@@ -104,7 +135,7 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
   missile->position->y = saucer->position->y + (saucer->height / 2);
   missile->time = al_get_timer_count(timer);
 
-  /* calculate the angle to hit the ship 
+  /* calculate the angle to hit the ship
    * my (current) best guess at calculating accuracy offsets
    *    f(x) = |i + (-n)|
    * where x = the accuracy offset angle,
@@ -114,8 +145,6 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
   accuracy_offset = abs(saucer->level + (-LEVEL_MAX));
   if(rand_f(0, 1) < 0.5)
     accuracy_offset = (-accuracy_offset);
-
-  printf("ACCURACY: %f\n", accuracy_offset);
 
   missile->angle = get_angle(ship->position->x, ship->position->y, missile->position->x, missile->position->y);
   missile->angle = rad2deg(missile->angle);

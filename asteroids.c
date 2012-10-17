@@ -509,7 +509,26 @@ main(void)
           if(saucer_missile_ship_collision(m, ship)) {
             asteroids.lives--;
             ship_explode(ship);
-            /* TODO: saucer_free(asteroids.level->saucer); */
+            saucer_free(asteroids.level->saucer);
+            asteroids.level->saucer = NULL;
+          }
+        }
+      }
+
+      /* saucer[missile] -> asteroid collisions. */
+      if(asteroids.level->saucer) {
+        MISSILE *m = asteroids.level->saucer->missile;
+        if(m->active) {
+          LIST *rocks = list_first(asteroids.level->asteroids);
+          while(rocks) {
+            ASTEROID *a = (ASTEROID *) rocks->data;
+
+            if(missile_collision(m, a)) {
+              missile_explode_asteroid(m, a);
+              break;
+            }
+
+            rocks = rocks->next;
           }
         }
       }
