@@ -180,5 +180,5 @@ saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
   if(!saucer->missile->active)
     saucer_fire(saucer, ship, timer);
   else
-    update_missile(saucer->missile, timer);
+    missile_update(saucer->missile, timer);
 }

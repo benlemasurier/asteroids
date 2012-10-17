@@ -18,9 +18,9 @@ typedef struct missile_t {
   ALLEGRO_BITMAP *sprite;
 } MISSILE;
 
+MISSILE *missile_create(void);
 void missile_free(MISSILE *missile);
 void missile_draw(MISSILE *missile);
-void update_missile(MISSILE *missile, ALLEGRO_TIMER *timer);
-MISSILE *missile_create(void);
+void missile_update(MISSILE *missile, ALLEGRO_TIMER *timer);
 
 #endif /* asteroids_missile_H */

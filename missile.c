@@ -34,7 +34,7 @@ missile_draw(MISSILE *missile)
 }
 
 void
-update_missile(MISSILE *missile, ALLEGRO_TIMER *timer)
+missile_update(MISSILE *missile, ALLEGRO_TIMER *timer)
 {
   if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(timer)) {
     missile->active = false;

@@ -245,7 +245,7 @@ ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
   /* ship missile positions */
   head = list_first(ship->missiles);
   while(head) {
-    update_missile((MISSILE *) head->data, timer);
+    missile_update((MISSILE *) head->data, timer);
     head = head->next;
   }
 
