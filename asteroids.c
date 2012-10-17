@@ -390,6 +390,143 @@ seconds_elapsed(int64_t time_count)
   return(time_count / FPS);
 }
 
+static void
+check_ship_asteroid_collisions(SHIP *ship, LIST *rocks)
+{
+  /* don't let the ship explode if it's already going down. */
+  if(ship->explosion)
+    return;
+
+  LIST *head = list_first(rocks);
+  while(head) {
+    ASTEROID *a = (ASTEROID *) head->data;
+
+    if(asteroid_ship_collision(ship, a)) {
+      asteroids.score += a->points;
+      explode_asteroid(a);
+
+      if(ship_explode(ship))
+        asteroids.lives--;
+
+      head = list_first(rocks);
+    }
+
+    head = head->next;
+  }
+}
+
+static void
+check_ship_missile_asteroid_collisions(SHIP *ship)
+{
+  LIST *head = list_first(ship->missiles);
+  while(head) {
+    MISSILE *m = (MISSILE *) head->data;
+
+    if(!m->active) {
+      head = head->next;
+      continue;
+    }
+
+    LIST *rock = list_first(asteroids.level->asteroids);
+    while(rock) {
+      ASTEROID *a = (ASTEROID *) rock->data;
+
+      if(missile_collision(m, a)) {
+        missile_explode_asteroid(m, a);
+        rock = list_first(asteroids.level->asteroids);
+      }
+
+      rock = rock->next;
+    }
+
+    head = head->next;
+  }
+}
+
+static void
+check_ship_missile_saucer_collisions(SHIP *ship)
+{
+  if(!asteroids.level->saucer)
+    return;
+
+  LIST *head = list_first(ship->missiles);
+  while(head) {
+    MISSILE *m = (MISSILE *) head->data;
+
+    if(ship_missile_saucer_collision(m, asteroids.level->saucer)) {
+      new_explosion(asteroids.level->saucer->position);
+      saucer_free(asteroids.level->saucer);
+      asteroids.level->saucer = NULL;
+      break;
+    }
+
+    head = head->next;
+  }
+}
+
+static void
+check_saucer_missile_ship_collisions(SHIP *ship)
+{
+  if(!asteroids.level->saucer)
+    return;
+
+  if(!asteroids.level->saucer->missile->active)
+    return;
+
+  MISSILE *m = asteroids.level->saucer->missile;
+  if(!saucer_missile_ship_collision(m, ship))
+    return;
+
+  asteroids.lives--;
+  ship_explode(ship);
+  saucer_free(asteroids.level->saucer);
+  asteroids.level->saucer = NULL;
+}
+
+static void
+check_saucer_missile_asteroids_collisions(void)
+{
+  if(!asteroids.level->saucer)
+    return;
+
+  MISSILE *m = asteroids.level->saucer->missile;
+  if(!m->active)
+    return;
+
+  LIST *rocks = list_first(asteroids.level->asteroids);
+  while(rocks) {
+    ASTEROID *a = (ASTEROID *) rocks->data;
+
+    if(missile_collision(m, a)) {
+      missile_explode_asteroid(m, a);
+      break;
+    }
+
+    rocks = rocks->next;
+  }
+}
+
+static void
+check_saucer_asteroid_collisions(void)
+{
+  if(!asteroids.level->saucer)
+    return;
+
+  LIST *head = list_first(asteroids.level->asteroids);
+  while(head && asteroids.level->saucer) {
+    ASTEROID *a = (ASTEROID *) head->data;
+
+    if(asteroid_saucer_collision(asteroids.level->saucer, a)) {
+      new_explosion(a->position);
+      explode_asteroid(a);
+      saucer_free(asteroids.level->saucer);
+      asteroids.level->saucer = NULL;
+    }
+
+    head = head->next;
+  }
+}
+
 int
 main(void)
 {
@@ -454,11 +591,6 @@ main(void)
 
       /* update positions */
       ship = ship_update(ship, asteroids.timer);
-      asteroids_update(asteroids.level->asteroids);
-      explosions_update();
-      level_update(asteroids.level, ship, asteroids.timer);
-
-      /* ship->asteroid collisions. */
       if(!ship->explosion) {
         head = list_first(asteroids.level->asteroids);
         while(head) {
@@ -477,97 +609,32 @@ main(void)
           head = head->next;
         }
       }
+      asteroids_update(asteroids.level->asteroids);
+      explosions_update();
+      level_update(asteroids.level, ship, asteroids.timer);
 
-      /* ship[missile] -> asteroid collisions. FIXME: who made this mess? */
-      LIST *missile_head = list_first(ship->missiles);
-      while(missile_head) {
-        MISSILE *m = (MISSILE *) missile_head->data;
+      /* ship->asteroid collisions. */
+      check_ship_asteroid_collisions(ship, asteroids.level->asteroids);
 
-        if(m->active) {
-          LIST *rocks = list_first(asteroids.level->asteroids);
-          while(rocks) {
-            ASTEROID *a = (ASTEROID *) rocks->data;
-
-            if(missile_collision(m, a)) {
-              missile_explode_asteroid(m, a);
-              rocks = list_first(asteroids.level->asteroids);
-              continue;
-            }
-
-            rocks = rocks->next;
-          }
-        }
-
-        missile_head = missile_head->next;
-      }
+      /* ship[missile] -> asteroid collisions. */
+      check_ship_missile_asteroid_collisions(ship);
 
       /* ship[missile] -> saucer collisions. */
-      if(asteroids.level->saucer) {
-        LIST *mhead = list_first(ship->missiles);
-        while(mhead) {
-          MISSILE *m = (MISSILE *) mhead->data;
-          if(ship_missile_saucer_collision(m, asteroids.level->saucer)) {
-            new_explosion(asteroids.level->saucer->position);
-            saucer_free(asteroids.level->saucer);
-            asteroids.level->saucer = NULL;
-            break;
-          }
-
-          mhead = mhead->next;
-        }
-      }
+      check_ship_missile_saucer_collisions(ship);
 
       /* saucer[missile] -> ship collisions. */
-      if(asteroids.level->saucer) {
-        if(asteroids.level->saucer->missile) {
-          MISSILE *m = asteroids.level->saucer->missile;
-          if(saucer_missile_ship_collision(m, ship)) {
-            asteroids.lives--;
-            ship_explode(ship);
-            saucer_free(asteroids.level->saucer);
-            asteroids.level->saucer = NULL;
-          }
-        }
-      }
+      check_saucer_missile_ship_collisions(ship);
 
       /* saucer[missile] -> asteroid collisions. */
-      if(asteroids.level->saucer) {
-        MISSILE *m = asteroids.level->saucer->missile;
-        if(m->active) {
-          LIST *rocks = list_first(asteroids.level->asteroids);
-          while(rocks) {
-            ASTEROID *a = (ASTEROID *) rocks->data;
-
-            if(missile_collision(m, a)) {
-              missile_explode_asteroid(m, a);
-              break;
-            }
-
-            rocks = rocks->next;
-          }
-        }
-      }
+      check_saucer_missile_asteroids_collisions();
 
       /* saucer->asteroid collisions. */
-      if(asteroids.level->saucer) {
-        head = list_first(asteroids.level->asteroids);
-        while(head && asteroids.level->saucer) {
-          ASTEROID *asteroid = (ASTEROID *) head->data;
-
-          if(asteroid_saucer_collision(asteroids.level->saucer, asteroid)) {
-            new_explosion(asteroid->position);
-            explode_asteroid(asteroid);
-            saucer_free(asteroids.level->saucer);
-            asteroids.level->saucer = NULL;
-          }
-
-          head = head->next;
-        }
-      }
+      check_saucer_asteroid_collisions();
 
       /* saucer missiles */
       if(asteroids.level->saucer)
-        saucer_fire(asteroids.level->saucer, ship, asteroids.timer);
+        if(!asteroids.level->saucer->missile->active)
+          saucer_fire(asteroids.level->saucer, ship, asteroids.timer);
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
