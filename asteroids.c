@@ -321,6 +321,18 @@ missile_collision(MISSILE *missile, ASTEROID *asteroid)
 }
 
 static bool
+ship_missile_saucer_collision(MISSILE *missile, SAUCER *saucer)
+{
+  float missile_x = missile->position->x - (missile->width   / 2);
+  float missile_y = missile->position->y - (missile->height  / 2);
+  float saucer_x = saucer->position->x - (saucer->width  / 2);
+  float saucer_y = saucer->position->y - (saucer->height / 2);
+
+  return collision(missile_x, missile_y, missile->width, missile->height,
+      saucer_x, saucer_y, saucer->width, saucer->height);
+}
+
+static bool
 saucer_missile_ship_collision(MISSILE *missile, SHIP *ship)
 {
   float missile_x = missile->position->x - (missile->width   / 2);
@@ -493,6 +505,22 @@ main(void)
         }
 
         missile_head = missile_head->next;
+      }
+
+      /* ship[missile] -> saucer collisions. */
+      if(asteroids.level->saucer) {
+        LIST *mhead = list_first(ship->missiles);
+        while(mhead) {
+          MISSILE *m = (MISSILE *) mhead->data;
+          if(ship_missile_saucer_collision(m, asteroids.level->saucer)) {
+            new_explosion(asteroids.level->saucer->position);
+            saucer_free(asteroids.level->saucer);
+            asteroids.level->saucer = NULL;
+            break;
+          }
+
+          mhead = mhead->next;
+        }
       }
 
       /* saucer[missile] -> ship collisions. */
