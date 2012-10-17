@@ -17,7 +17,7 @@
 #include "saucer.h"
 
 #define SMALL_POINTS 1000
-#define LARGE_POINTS 250 // FIXME: is this correct?
+#define LARGE_POINTS 200
 
 static ALLEGRO_BITMAP *small_sprite = NULL;
 static ALLEGRO_BITMAP *large_sprite = NULL;
