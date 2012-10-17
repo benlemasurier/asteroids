@@ -340,12 +340,12 @@ explode_asteroid(ASTEROID *asteroid)
   level->asteroids = list_remove(level->asteroids, asteroid);
 
   if(asteroid->size > ASTEROID_SMALL) {
-    ASTEROID *tmp = create_asteroid(asteroid->size - 1);
+    ASTEROID *tmp = asteroid_create(asteroid->size - 1);
     tmp->position->x = asteroid->position->x;
     tmp->position->y = asteroid->position->y;
     level->asteroids = list_append(level->asteroids, tmp);
 
-    tmp = create_asteroid(asteroid->size - 1);
+    tmp = asteroid_create(asteroid->size - 1);
     tmp->position->x = asteroid->position->x;
     tmp->position->y = asteroid->position->y;
     level->asteroids = list_append(level->asteroids, tmp);
@@ -408,7 +408,7 @@ main(void)
   if(!(ship = ship_create()))
     exit(EXIT_FAILURE);
 
-  asteroids.level = create_level(asteroids.current_level);
+  asteroids.level = level_create(asteroids.current_level);
 
   al_flip_display();
   al_start_timer(asteroids.timer);
@@ -448,7 +448,7 @@ main(void)
       if(list_length(asteroids.level->asteroids) == 0) {
         asteroids.current_level += 1; /* TODO: levels have a ceiling, what is it? */
         LEVEL *old = asteroids.level;
-        asteroids.level = create_level(asteroids.current_level);
+        asteroids.level = level_create(asteroids.current_level);
         level_free(old);
         al_rest(2.0);
       }

@@ -98,7 +98,7 @@ saucer_new(uint8_t size, uint8_t level)
   saucer->level       = level;
   saucer->velocity->x = (float)   sin(deg2rad(saucer->angle));
   saucer->velocity->y = (float) -(cos(deg2rad(saucer->angle)));
-  saucer->missile     = create_missile();
+  saucer->missile     = missile_create();
 
   saucer->size = size;
   switch(saucer->size) {
@@ -129,7 +129,6 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
   if(missile->active)
     return;
 
-  /* FIXME: testing */
   missile->active = true;
   missile->position->x = saucer->position->x + (saucer->width  / 2);
   missile->position->y = saucer->position->y + (saucer->height / 2);

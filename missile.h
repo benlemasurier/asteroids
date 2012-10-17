@@ -21,6 +21,6 @@ typedef struct missile_t {
 void missile_free(MISSILE *missile);
 void missile_draw(MISSILE *missile);
 void update_missile(MISSILE *missile, ALLEGRO_TIMER *timer);
-MISSILE *create_missile(void);
+MISSILE *missile_create(void);
 
 #endif /* asteroids_missile_H */

@@ -49,7 +49,7 @@ ship_create(void)
   ship->fire_debounce  = false;
 
   for(int i = 0; i < MAX_MISSILES; i++)
-    ship->missiles = list_append(ship->missiles, create_missile());
+    ship->missiles = list_append(ship->missiles, missile_create());
 
   return ship;
 }

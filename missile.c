@@ -47,7 +47,7 @@ update_missile(MISSILE *missile, ALLEGRO_TIMER *timer)
 }
 
 MISSILE *
-create_missile(void)
+missile_create(void)
 {
   MISSILE *missile  = malloc(sizeof(MISSILE));
   missile->position = malloc(sizeof(VECTOR));

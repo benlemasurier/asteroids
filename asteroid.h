@@ -24,7 +24,7 @@ typedef struct asteroid_t {
   ALLEGRO_BITMAP *sprite;
 } ASTEROID;
 
-ASTEROID *create_asteroid(uint8_t size);
+ASTEROID *asteroid_create(uint8_t size);
 void asteroid_draw(ASTEROID *asteroid);
 void asteroid_free(ASTEROID *asteroid);
 bool asteroid_init(void);

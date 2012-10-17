@@ -81,7 +81,7 @@ load_asteroid_sprite(uint8_t size, float angle)
 }
 
 ASTEROID *
-create_asteroid(uint8_t size)
+asteroid_create(uint8_t size)
 {
   ASTEROID *asteroid = malloc(sizeof(ASTEROID));
 
