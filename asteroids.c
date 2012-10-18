@@ -60,6 +60,18 @@ static struct asteroids {
 } asteroids;
 
 static void
+score(int points)
+{
+  asteroids.score += points;
+  if(asteroids.score > (unsigned long) atol(asteroids.high_score)) {
+    char score_s[20];
+    sprintf(score_s, "%02lu", asteroids.score);
+
+    set_config_value("high_score", score_s);
+  }
+}
+
+static void
 shutdown(void)
 {
   /* FIXME: why can't I cleanly access asteroids.timer,display,etc here? */
@@ -95,29 +107,29 @@ offscreen(VECTOR *position, uint8_t width, uint8_t height)
 static void
 draw_score(void)
 {
-  char score[20];
-  sprintf(score, "%02lu", asteroids.score);
+  char score_s[20];
+  sprintf(score_s, "%02lu", asteroids.score);
 
   al_draw_text(asteroids.large_font,
       al_map_rgb(WHITE),
       SCORE_X,
       SCORE_Y,
       ALLEGRO_ALIGN_RIGHT,
-      score);
+      score_s);
 }
 
 static void
 draw_high_score(void)
 {
-  char score[20];
-  sprintf(score, "%02lu", (unsigned long) atol(asteroids.high_score));
+  char score_s[20];
+  sprintf(score_s, "%02lu", (unsigned long) atol(asteroids.high_score));
 
   al_draw_text(asteroids.small_font,
       al_map_rgb(WHITE),
       SCREEN_W / 2,
       HIGH_SCORE_Y,
       ALLEGRO_ALIGN_CENTRE,
-      score);
+      score_s);
 }
 
 static void
@@ -407,7 +419,7 @@ static void
 missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
 {
   missile->active = false;
-  asteroids.score += asteroid->points;
+  score(asteroid->points);
 
   new_explosion(missile->position);
   explode_asteroid(asteroid);
@@ -433,7 +445,7 @@ check_ship_asteroid_collisions(SHIP *ship, LIST *rocks)
     ASTEROID *a = (ASTEROID *) head->data;
 
     if(asteroid_ship_collision(ship, a)) {
-      asteroids.score += a->points;
+      score(a->points);
       explode_asteroid(a);
 
       if(ship_explode(ship))
