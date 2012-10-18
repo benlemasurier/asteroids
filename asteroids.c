@@ -437,6 +437,7 @@ check_ship_missile_asteroid_collisions(SHIP *ship)
       if(missile_collision(m, a)) {
         missile_explode_asteroid(m, a);
         rock = list_first(asteroids.level->asteroids);
+        continue;
       }
 
       rock = rock->next;
