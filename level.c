@@ -19,6 +19,9 @@ level_create(uint8_t level_number)
 
   uint8_t n_create;
   switch(level_number) {
+    case 0: /* home screen */
+      n_create = 6;
+      break;
     case 1:
       n_create = 4;
       break;

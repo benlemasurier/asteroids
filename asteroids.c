@@ -30,6 +30,7 @@
 #include "asteroids.h"
 
 enum CONTROLS {
+  KEY_S,       /* start */
   KEY_UP,      /* thrust */
   KEY_LEFT,    /* rotate left */
   KEY_RIGHT,   /* rotate right */
@@ -566,6 +567,31 @@ next_level(void)
   al_rest(2.0);
 }
 
+static void
+draw_home(void)
+{
+  al_draw_text(asteroids.large_font,
+      al_map_rgb(WHITE),
+      SCREEN_W / 2,
+      HIGH_SCORE_Y + 70,
+      ALLEGRO_ALIGN_CENTRE,
+      "PUSH START");
+
+  al_draw_text(asteroids.large_font,
+      al_map_rgb(WHITE),
+      SCREEN_W / 2,
+      SCREEN_H - 100,
+      ALLEGRO_ALIGN_CENTRE,
+      "1 COIN  |  PLAY");
+
+}
+
+static void
+start(void)
+{
+  next_level();
+}
+
 int
 main(void)
 {
@@ -574,12 +600,12 @@ main(void)
   asteroids.display       = NULL;
   asteroids.timer         = NULL;
   asteroids.event_queue   = NULL;
-  asteroids.current_level = 1;
+  asteroids.current_level = 0;
   SHIP *ship;
 
   bool redraw = true;
   bool quit   = false;
-  bool key[5] = { false };
+  bool key[6] = { false };
 
   seed_rand();
   atexit(shutdown);
@@ -587,10 +613,10 @@ main(void)
   if(!init())
     exit(EXIT_FAILURE);
 
+  asteroids.level = level_create(asteroids.current_level);
+
   if(!(ship = ship_create()))
     exit(EXIT_FAILURE);
-
-  asteroids.level = level_create(asteroids.current_level);
 
   al_flip_display();
   al_start_timer(asteroids.timer);
@@ -600,6 +626,12 @@ main(void)
     al_wait_for_event(asteroids.event_queue, &ev);
 
     if(ev.type == ALLEGRO_EVENT_TIMER) {
+      /* start game */
+      if(asteroids.current_level == 0 && key[KEY_S]) {
+        start();
+        continue;
+      }
+
       /* move forward */
       if(key[KEY_UP])
         ship_accelerate(ship);
@@ -654,6 +686,9 @@ main(void)
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       switch(ev.keyboard.keycode) {
+        case ALLEGRO_KEY_S:
+          key[KEY_S] = true;
+          break;
         case ALLEGRO_KEY_UP:
           key[KEY_UP] = true;
           break;
@@ -672,6 +707,9 @@ main(void)
       }
     } else if(ev.type == ALLEGRO_EVENT_KEY_UP) {
       switch(ev.keyboard.keycode) {
+        case ALLEGRO_KEY_S:
+          key[KEY_S] = false;
+          break;
         case ALLEGRO_KEY_UP:
           key[KEY_UP] = false;
           break;
@@ -702,6 +740,17 @@ main(void)
       draw_score();
       draw_lives();
       draw_high_score();
+      draw_asteroids(asteroids.level->asteroids);
+      explosions_draw();
+      if(asteroids.level->saucer)
+        saucer_draw(asteroids.level->saucer);
+
+      if(asteroids.current_level == 0) {
+        draw_home();
+        al_flip_display();
+        continue;
+      }
+
       if(asteroids.lives > 0) {
         ship_draw(ship, key[KEY_UP]);
         draw_missiles(ship->missiles);
@@ -710,10 +759,6 @@ main(void)
           ship_draw(ship, false);
         draw_gameover();
       }
-      draw_asteroids(asteroids.level->asteroids);
-      explosions_draw();
-      if(asteroids.level->saucer)
-        saucer_draw(asteroids.level->saucer);
 
       al_flip_display();
     }
