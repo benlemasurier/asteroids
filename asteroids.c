@@ -485,6 +485,7 @@ check_saucer_missile_ship_collisions(SHIP *ship)
 
   asteroids.lives--;
   ship_explode(ship);
+  // saucer_exit(saucer); /* TODO: */
   saucer_free(asteroids.level->saucer);
   asteroids.level->saucer = NULL;
 }

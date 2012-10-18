@@ -67,7 +67,7 @@ level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer)
   /* is it time to introduce a new saucer? */
   if(!level->saucer)
     if(seconds_elapsed(time_count - level->saucer_seen) > next_saucer)
-      level->saucer = saucer_new(SAUCER_LARGE, level->number);
+      level->saucer = saucer_new(SAUCER_LARGE, level->number, timer);
 
   if(level->saucer) {
     saucer_update(level->saucer, ship, timer);

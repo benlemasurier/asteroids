@@ -29,36 +29,6 @@ enum {
   LEFT   = 3
 };
 
-void
-saucer_draw(SAUCER *saucer)
-{
-  assert(saucer);
-  al_draw_bitmap(
-      saucer->sprite,
-      saucer->position->x,
-      saucer->position->y,
-      DRAWING_FLAGS);
-
-  if(saucer->missile->active)
-    missile_draw(saucer->missile);
-}
-
-bool
-saucer_init(void)
-{
-  if((small_sprite = al_load_bitmap("data/sprites/saucer/saucer-small.png")) == NULL) {
-    fprintf(stderr, "failed to load small saucer sprite\n");
-    return false;
-  }
-
-  if((large_sprite = al_load_bitmap("data/sprites/saucer/saucer-large.png")) == NULL) {
-    fprintf(stderr, "failed to load large saucer sprite\n");
-    return false;
-  }
-
-  return true;
-}
-
 static VECTOR *
 random_position(void)
 {
@@ -85,15 +55,63 @@ random_position(void)
   return position;
 }
 
+void
+saucer_draw(SAUCER *saucer)
+{
+  assert(saucer);
+  al_draw_bitmap(
+      saucer->sprite,
+      saucer->position->x,
+      saucer->position->y,
+      DRAWING_FLAGS);
+
+  if(saucer->missile->active)
+    missile_draw(saucer->missile);
+}
+
+void
+saucer_exit(SAUCER *saucer)
+{
+  /* pick a random exit point */
+  saucer->exit = random_position();
+
+  /* change saucer trajectory to exit point */
+  saucer->angle = get_angle(saucer->exit->x, saucer->exit->y,
+                            saucer->position->x, saucer->position->y);
+  saucer->angle = rad2deg(saucer->angle);
+  saucer->angle = saucer->angle - 90.0;
+
+  saucer->velocity->x = (float)   sin(deg2rad(saucer->angle));
+  saucer->velocity->y = (float) -(cos(deg2rad(saucer->angle)));
+}
+
+bool
+saucer_init(void)
+{
+  if((small_sprite = al_load_bitmap("data/sprites/saucer/saucer-small.png")) == NULL) {
+    fprintf(stderr, "failed to load small saucer sprite\n");
+    return false;
+  }
+
+  if((large_sprite = al_load_bitmap("data/sprites/saucer/saucer-large.png")) == NULL) {
+    fprintf(stderr, "failed to load large saucer sprite\n");
+    return false;
+  }
+
+  return true;
+}
+
 SAUCER *
-saucer_new(uint8_t size, uint8_t level)
+saucer_new(uint8_t size, uint8_t level, ALLEGRO_TIMER *timer)
 {
   assert(small_sprite);
   assert(large_sprite);
 
   SAUCER *saucer      = malloc(sizeof(SAUCER));
+  saucer->entry_time  = al_get_timer_count(timer);
   saucer->position    = random_position();
   saucer->velocity    = malloc(sizeof(VECTOR));
+  saucer->exit        = NULL;
   saucer->angle       = rand_f(0.0, 360.0);
   saucer->level       = level;
   saucer->velocity->x = (float)   sin(deg2rad(saucer->angle));
@@ -158,6 +176,8 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
 void
 saucer_free(SAUCER *saucer)
 {
+  if(saucer->exit)
+    free(saucer->exit);
   free(saucer->position);
   free(saucer->velocity);
   free(saucer);
@@ -174,12 +194,27 @@ saucer_shutdown(void)
 void
 saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
 {
+  int64_t time_count = al_get_timer_count(timer);
+
+  if(!saucer->exit)
+    if(seconds_elapsed(time_count - saucer->entry_time) > SAUCER_TTL)
+      saucer_exit(saucer);
+
   saucer->position->x += saucer->velocity->x;
   saucer->position->y += saucer->velocity->y;
-  wrap_position(saucer->position);
 
   if(!saucer->missile->active)
     saucer_fire(saucer, ship, timer);
   else
     missile_update(saucer->missile, timer);
+
+  /* if we're exiting and gone offscreen, remove the saucer */
+  if(!saucer->exit) {
+    wrap_position(saucer->position);
+  } else {
+    if((saucer->position->x > SCREEN_W || saucer->position->x < 0) &&
+       (saucer->position->y < 0 || saucer->position->y > SCREEN_H)) {
+      saucer_free(saucer);
+    }
+  }
 }
