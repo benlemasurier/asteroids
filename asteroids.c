@@ -28,6 +28,7 @@
 #include "animation.h"
 #include "explosion.h"
 #include "asteroids.h"
+#include "configuration.h"
 
 enum CONTROLS {
   KEY_S,       /* start */
@@ -40,7 +41,7 @@ enum CONTROLS {
 
 static struct asteroids {
   unsigned long int score;
-  unsigned long int high_score;
+  const char *high_score;
 
   uint8_t current_level;
 
@@ -109,7 +110,7 @@ static void
 draw_high_score(void)
 {
   char score[20];
-  sprintf(score, "%02lu", asteroids.high_score);
+  sprintf(score, "%02lu", (unsigned long) atol(asteroids.high_score));
 
   al_draw_text(asteroids.small_font,
       al_map_rgb(WHITE),
@@ -583,7 +584,6 @@ draw_home(void)
       SCREEN_H - 100,
       ALLEGRO_ALIGN_CENTRE,
       "1 COIN  |  PLAY");
-
 }
 
 static void
@@ -612,6 +612,9 @@ main(void)
 
   if(!init())
     exit(EXIT_FAILURE);
+
+  if((asteroids.high_score = get_config_value("high_score")) == NULL)
+    asteroids.high_score = "0";
 
   asteroids.level = level_create(asteroids.current_level);
 
