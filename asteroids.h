@@ -7,8 +7,9 @@
 #define FPS  60
 #define DRAG 0.99
 
-#define SCREEN_W 800
-#define SCREEN_H 600
+/* original asteroids was 1024x760 */
+#define SCREEN_W 1024
+#define SCREEN_H 768
 
 #define BLACK 0,0,0
 #define WHITE 255,255,255
