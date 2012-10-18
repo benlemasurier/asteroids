@@ -136,12 +136,13 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
 
   /* calculate the angle to hit the ship
    * my (current) best guess at calculating accuracy offsets
-   *    f(x) = |i + (-n)|
+   *    f(x) = |i + (-n)| +/- rand(x)
    * where x = the accuracy offset angle,
    *       i = the current level
    *   and n = the highest possible level difficulty
   */
   accuracy_offset = abs(saucer->level + (-LEVEL_MAX));
+  accuracy_offset = accuracy_offset + rand_f(-accuracy_offset, accuracy_offset);
   if(rand_f(0, 1) < 0.5)
     accuracy_offset = (-accuracy_offset);
 
