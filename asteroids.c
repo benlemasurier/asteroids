@@ -175,10 +175,13 @@ explosions_update(void)
   while(head) {
     ANIMATION *explosion = (ANIMATION *) head->data;
 
-    if(explosion->current_frame < explosion->n_frames)
+    if(explosion->current_frame < explosion->n_frames) {
       animation_update(explosion);
-    else
+    } else {
       remove_explosion(explosion);
+      head = list_first(asteroids.explosions);
+      continue;
+    }
 
     head = head->next;
   }
