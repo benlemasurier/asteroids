@@ -8,6 +8,7 @@
 #define DRAG 0.99
 
 /* original asteroids was 1024x760 */
+#define FULLSCREEN false
 #define SCREEN_W 1024
 #define SCREEN_H 768
 
