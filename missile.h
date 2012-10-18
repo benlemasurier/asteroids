@@ -3,7 +3,7 @@
 
 #include "asteroids.h"
 
-#define MISSILE_TTL   1
+#define MISSILE_TTL   1.5
 
 typedef struct missile_t {
   int width;
