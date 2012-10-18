@@ -587,7 +587,6 @@ main(void)
 
   while(!quit) {
     ALLEGRO_EVENT ev;
-    LIST *head = NULL;
     al_wait_for_event(asteroids.event_queue, &ev);
 
     if(ev.type == ALLEGRO_EVENT_TIMER) {
@@ -620,24 +619,6 @@ main(void)
 
       /* update positions */
       ship = ship_update(ship, asteroids.timer);
-      if(!ship->explosion) {
-        head = list_first(asteroids.level->asteroids);
-        while(head) {
-          ASTEROID *asteroid = (ASTEROID *) head->data;
-
-          if(asteroid_ship_collision(ship, asteroid)) {
-            asteroids.score += asteroid->points;
-            explode_asteroid(asteroid);
-
-            if(ship_explode(ship))
-              asteroids.lives--;
-
-            head = list_first(asteroids.level->asteroids);
-          }
-
-          head = head->next;
-        }
-      }
       asteroids_update(asteroids.level->asteroids);
       explosions_update();
       level_update(asteroids.level, ship, asteroids.timer);
