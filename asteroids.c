@@ -119,6 +119,17 @@ draw_high_score(void)
 }
 
 static void
+draw_gameover(void)
+{
+  al_draw_text(asteroids.large_font,
+      al_map_rgb(WHITE),
+      SCREEN_W / 2,
+      SCREEN_H / 3,
+      ALLEGRO_ALIGN_CENTRE,
+      "GAME OVER");
+}
+
+static void
 draw_lives(void)
 {
   int width = al_get_bitmap_width(asteroids.lives_sprite);
@@ -707,8 +718,12 @@ main(void)
       draw_score();
       draw_lives();
       draw_high_score();
-      ship_draw(ship, key[KEY_UP]);
-      draw_missiles(ship->missiles);
+      if(asteroids.lives > 0) {
+        ship_draw(ship, key[KEY_UP]);
+        draw_missiles(ship->missiles);
+      } else {
+        draw_gameover();
+      }
       draw_asteroids(asteroids.level->asteroids);
       explosions_draw();
       if(asteroids.level->saucer)
