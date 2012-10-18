@@ -722,6 +722,8 @@ main(void)
         ship_draw(ship, key[KEY_UP]);
         draw_missiles(ship->missiles);
       } else {
+        if(ship->explosion)
+          ship_draw(ship, false);
         draw_gameover();
       }
       draw_asteroids(asteroids.level->asteroids);
