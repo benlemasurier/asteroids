@@ -556,6 +556,16 @@ check_saucer_asteroid_collisions(void)
   }
 }
 
+static void
+next_level(void)
+{
+  asteroids.current_level += 1; /* TODO: levels have a ceiling, what is it? */
+  LEVEL *old = asteroids.level;
+  asteroids.level = level_create(asteroids.current_level);
+  level_free(old);
+  al_rest(2.0);
+}
+
 int
 main(void)
 {
@@ -609,13 +619,8 @@ main(void)
         ship_fire(ship, asteroids.timer);
 
       /* are we out of asteroids to destroy? */
-      if(list_length(asteroids.level->asteroids) == 0) {
-        asteroids.current_level += 1; /* TODO: levels have a ceiling, what is it? */
-        LEVEL *old = asteroids.level;
-        asteroids.level = level_create(asteroids.current_level);
-        level_free(old);
-        al_rest(2.0);
-      }
+      if(list_length(asteroids.level->asteroids) == 0)
+        next_level();
 
       /* update positions */
       ship = ship_update(ship, asteroids.timer);
