@@ -70,7 +70,7 @@ level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer)
       level->saucer = saucer_new(SAUCER_LARGE, level->number, timer);
 
   if(level->saucer) {
-    saucer_update(level->saucer, ship, timer);
+    level->saucer = saucer_update(level->saucer, ship, timer);
     level->saucer_seen = time_count;
   }
 

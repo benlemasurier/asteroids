@@ -36,6 +36,6 @@ void saucer_exit(SAUCER *saucer);
 SAUCER *saucer_new(uint8_t size, uint8_t level, ALLEGRO_TIMER *timer);
 void saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer);
 void saucer_free(SAUCER *saucer);
-void saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer);
+SAUCER *saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer);
 
 #endif /* asteroids_saucer_H */

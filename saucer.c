@@ -191,7 +191,7 @@ saucer_shutdown(void)
   al_destroy_bitmap(large_sprite);
 }
 
-void
+SAUCER *
 saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
 {
   int64_t time_count = al_get_timer_count(timer);
@@ -212,9 +212,11 @@ saucer_update(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
   if(!saucer->exit) {
     wrap_position(saucer->position);
   } else {
-    if((saucer->position->x > SCREEN_W || saucer->position->x < 0) &&
-       (saucer->position->y < 0 || saucer->position->y > SCREEN_H)) {
+    if(offscreen(saucer->position, saucer->width, saucer->height)) {
       saucer_free(saucer);
+      saucer = NULL;
     }
   }
+
+  return saucer;
 }

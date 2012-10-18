@@ -77,6 +77,19 @@ wrap_position(VECTOR *position)
     position->y = SCREEN_H;
 }
 
+bool
+offscreen(VECTOR *position, uint8_t width, uint8_t height)
+{
+  if((position->x - (width / 2)) > SCREEN_W ||
+      (position->x + (width / 2)) < 0)
+    return true;
+  if((position->y - (height / 2)) > SCREEN_H ||
+      (position->y + (height / 2)) < 0)
+    return true;
+
+  return false;
+}
+
 static void
 draw_score(void)
 {

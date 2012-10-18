@@ -32,6 +32,7 @@ typedef struct vector_t {
 } VECTOR;
 
 void wrap_position(VECTOR *position);
+bool offscreen(VECTOR *position, uint8_t width, uint8_t height);
 int64_t seconds_elapsed(int64_t time_count);
 
 #endif /* asteroids_H */
