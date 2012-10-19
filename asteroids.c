@@ -30,15 +30,6 @@
 #include "asteroids.h"
 #include "configuration.h"
 
-enum CONTROLS {
-  KEY_S,       /* start */
-  KEY_UP,      /* thrust */
-  KEY_LEFT,    /* rotate left */
-  KEY_RIGHT,   /* rotate right */
-  KEY_SPACE,   /* fire ze missiles */
-  KEY_LCONTROL /* HYPERSPACE! */
-};
-
 static struct asteroids {
   unsigned long int score;
   const char *high_score;
@@ -560,30 +551,12 @@ main(void)
         continue;
       }
 
-      /* move forward */
-      if(key[KEY_UP])
-        ship_accelerate(ship);
-
-      /* rotate */
-      if(key[KEY_LEFT])
-        ship_rotate(ship, -3);
-      if(key[KEY_RIGHT])
-        ship_rotate(ship, 3);
-
-      /* hyperspace */
-      if(key[KEY_LCONTROL])
-        ship_hyperspace(ship);
-
-      /* shoot */
-      if(key[KEY_SPACE])
-        ship_fire(ship, asteroids.timer);
-
       /* are we out of asteroids to destroy? */
       if(list_length(asteroids.level->asteroids) == 0)
         next_level();
 
-      /* update positions */
-      ship = ship_update(ship, asteroids.timer);
+      /* update objects */
+      ship = ship_update(ship, key, asteroids.timer);
       asteroid_update_list(asteroids.level->asteroids);
       explosions_update();
       level_update(asteroids.level, ship, asteroids.timer);

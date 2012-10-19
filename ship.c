@@ -237,9 +237,27 @@ ship_shutdown(void)
 }
 
 SHIP *
-ship_update(SHIP *ship, ALLEGRO_TIMER *timer)
+ship_update(SHIP *ship, bool keys[], ALLEGRO_TIMER *timer)
 {
   LIST *head = NULL;
+
+  /* move forward */
+  if(keys[KEY_UP])
+    ship_accelerate(ship);
+
+  /* rotate */
+  if(keys[KEY_LEFT])
+    ship_rotate(ship, -3);
+  if(keys[KEY_RIGHT])
+    ship_rotate(ship, 3);
+
+  /* hyperspace */
+  if(keys[KEY_LCONTROL])
+    ship_hyperspace(ship);
+
+  /* shoot */
+  if(keys[KEY_SPACE])
+    ship_fire(ship, timer);
 
   if(ship->explosion) {
     animation_update(ship->explosion);
