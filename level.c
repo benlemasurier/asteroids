@@ -75,6 +75,10 @@ level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer)
   if(level->saucer) {
     level->saucer = saucer_update(level->saucer, ship, timer);
     level->saucer_seen = time_count;
+
+    /* saucer missiles */
+    if(!level->saucer->missile->active)
+      saucer_fire(level->saucer, ship, timer);
   }
 
   return;

@@ -632,18 +632,13 @@ main(void)
       /* saucer->asteroid collisions. */
       check_saucer_asteroid_collisions();
 
-      /* saucer missiles */
-      if(asteroids.level->saucer)
-        if(!asteroids.level->saucer->missile->active)
-          saucer_fire(asteroids.level->saucer, ship, asteroids.timer);
-
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       keydown(ev, key);
       quit = key[KEY_ESCAPE];
     } else if(ev.type == ALLEGRO_EVENT_KEY_UP) {
       keyup(ev, key);
-      ship->fire_debounce = key[KEY_SPACE];
+      ship->fire_debounce  = key[KEY_SPACE];
       ship->hyper_debounce = key[KEY_LCONTROL];
     }
 
