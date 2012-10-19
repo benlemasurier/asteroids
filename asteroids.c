@@ -472,7 +472,7 @@ check_saucer_asteroid_collisions(void)
   while(head && asteroids.level->saucer) {
     ASTEROID *a = (ASTEROID *) head->data;
 
-    if(asteroid_saucer_collision(asteroids.level->saucer, a)) {
+    if(saucer_asteroid_collision(asteroids.level->saucer, a)) {
       new_explosion(a->position);
       explode_asteroid(a);
       saucer_free(asteroids.level->saucer);

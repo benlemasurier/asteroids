@@ -31,7 +31,7 @@ typedef struct saucer_t {
   ALLEGRO_BITMAP *sprite;
 } SAUCER;
 
-bool asteroid_saucer_collision(SAUCER *s, ASTEROID *a);
+bool saucer_asteroid_collision(SAUCER *s, ASTEROID *a);
 void saucer_draw(SAUCER *saucer);
 bool saucer_init(void);
 void saucer_exit(SAUCER *saucer);

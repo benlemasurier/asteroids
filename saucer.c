@@ -57,7 +57,7 @@ random_position(void)
 }
 
 bool
-asteroid_saucer_collision(SAUCER *s, ASTEROID *a)
+saucer_asteroid_collision(SAUCER *s, ASTEROID *a)
 {
   float saucer_x = s->position->x - (s->width  / 2);
   float saucer_y = s->position->y - (s->height / 2);
