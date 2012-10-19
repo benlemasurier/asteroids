@@ -133,18 +133,6 @@ asteroid_draw(ASTEROID *asteroid)
 }
 
 void
-asteroid_draw_list(LIST *rocks)
-{
-  LIST *head = list_first(rocks);
-  while(head) {
-    ASTEROID *rock = (ASTEROID *) head->data;
-    asteroid_update(rock);
-
-    head = head->next;
-  }
-}
-
-void
 asteroid_free(ASTEROID *asteroid)
 {
   free(asteroid->position);
@@ -209,4 +197,16 @@ asteroid_update(ASTEROID *asteroid)
   asteroid->position->x += asteroid->velocity->x;
   asteroid->position->y += asteroid->velocity->y;
   wrap_position(asteroid->position);
+}
+
+void
+asteroid_update_list(LIST *rocks)
+{
+  LIST *head = list_first(rocks);
+  while(head) {
+    ASTEROID *rock = (ASTEROID *) head->data;
+    asteroid_update(rock);
+
+    head = head->next;
+  }
 }
