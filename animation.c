@@ -6,6 +6,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
+#include "list.h"
 #include "asteroids.h"
 #include "animation.h"
 
@@ -20,6 +21,16 @@ animation_draw(ANIMATION *animation)
       animation->position->x,
       animation->position->y,
       DRAWING_FLAGS);
+}
+
+void
+animation_draw_list(LIST *animation)
+{
+  LIST *head = list_first(animation);
+  while(head) {
+    animation_draw((ANIMATION *) head->data);
+    head = head->next;
+  }
 }
 
 void

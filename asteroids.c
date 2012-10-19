@@ -157,16 +157,6 @@ draw_score(void)
 }
 
 static void
-explosions_draw(void)
-{
-  LIST *head = list_first(asteroids.explosions);
-  while(head) {
-    animation_draw((ANIMATION *) head->data);
-    head = head->next;
-  }
-}
-
-static void
 new_explosion(VECTOR *position)
 {
   ANIMATION *explosion = explosion_create(position);
@@ -691,7 +681,7 @@ main(void)
       draw_lives();
       draw_high_score();
       asteroid_draw_list(asteroids.level->asteroids);
-      explosions_draw();
+      animation_draw_list(asteroids.explosions);
       if(asteroids.level->saucer)
         saucer_draw(asteroids.level->saucer);
 

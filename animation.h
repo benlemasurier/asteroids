@@ -1,6 +1,7 @@
 #ifndef asteroids_animation_H
 #define asteroids_animation_H
 
+#include "list.h"
 #include "asteroids.h"
 
 typedef struct animation_t {
@@ -22,6 +23,7 @@ typedef struct animation_t {
 
 
 void animation_draw(ANIMATION *animation);
+void animation_draw_list(LIST *animation);
 void animation_free(ANIMATION *animation);
 ANIMATION *animation_new(ALLEGRO_BITMAP **sprites, size_t n_frames);
 void animation_update(ANIMATION *animation);
