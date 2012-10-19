@@ -27,12 +27,13 @@
 #define DRAWING_FLAGS 0
 
 enum CONTROLS {
-  KEY_S,       /* start */
-  KEY_UP,      /* thrust */
-  KEY_LEFT,    /* rotate left */
-  KEY_RIGHT,   /* rotate right */
-  KEY_SPACE,   /* fire ze missiles */
-  KEY_LCONTROL /* HYPERSPACE! */
+  KEY_S,        /* start */
+  KEY_UP,       /* thrust */
+  KEY_LEFT,     /* rotate left */
+  KEY_RIGHT,    /* rotate right */
+  KEY_SPACE,    /* fire ze missiles */
+  KEY_LCONTROL, /* HYPERSPACE! */
+  KEY_ESCAPE    /* quit */
 };
 
 typedef struct vector_t {

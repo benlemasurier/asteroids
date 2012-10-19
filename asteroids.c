@@ -508,6 +508,59 @@ start(void)
   next_level();
 }
 
+static void
+keydown(ALLEGRO_EVENT ev, bool *keys)
+{
+  switch(ev.keyboard.keycode) {
+    case ALLEGRO_KEY_S:
+      keys[KEY_S] = true;
+      break;
+    case ALLEGRO_KEY_UP:
+      keys[KEY_UP] = true;
+      break;
+    case ALLEGRO_KEY_LEFT:
+      keys[KEY_LEFT] = true;
+      break;
+    case ALLEGRO_KEY_RIGHT:
+      keys[KEY_RIGHT] = true;
+      break;
+    case ALLEGRO_KEY_SPACE:
+      keys[KEY_SPACE] = true;
+      break;
+    case ALLEGRO_KEY_LCTRL:
+      keys[KEY_LCONTROL] = true;
+      break;
+  }
+}
+
+static void
+keyup(ALLEGRO_EVENT ev, bool *keys)
+{
+  switch(ev.keyboard.keycode) {
+    case ALLEGRO_KEY_S:
+      keys[KEY_S] = false;
+      break;
+    case ALLEGRO_KEY_UP:
+      keys[KEY_UP] = false;
+      break;
+    case ALLEGRO_KEY_LEFT:
+      keys[KEY_LEFT] = false;
+      break;
+    case ALLEGRO_KEY_RIGHT:
+      keys[KEY_RIGHT] = false;
+      break;
+    case ALLEGRO_KEY_SPACE:
+      keys[KEY_SPACE] = false;
+      break;
+    case ALLEGRO_KEY_LCTRL:
+      keys[KEY_LCONTROL] = false;
+      break;
+    case ALLEGRO_KEY_ESCAPE:
+      keys[KEY_ESCAPE] = true;
+      break;
+  }
+}
+
 int
 main(void)
 {
@@ -521,7 +574,7 @@ main(void)
 
   bool redraw = true;
   bool quit   = false;
-  bool key[6] = { false };
+  bool key[7] = { false };
 
   seed_rand();
   atexit(shutdown);
@@ -586,52 +639,12 @@ main(void)
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-      switch(ev.keyboard.keycode) {
-        case ALLEGRO_KEY_S:
-          key[KEY_S] = true;
-          break;
-        case ALLEGRO_KEY_UP:
-          key[KEY_UP] = true;
-          break;
-        case ALLEGRO_KEY_LEFT:
-          key[KEY_LEFT] = true;
-          break;
-        case ALLEGRO_KEY_RIGHT:
-          key[KEY_RIGHT] = true;
-          break;
-        case ALLEGRO_KEY_SPACE:
-          key[KEY_SPACE] = true;
-          break;
-        case ALLEGRO_KEY_LCTRL:
-          key[KEY_LCONTROL] = true;
-          break;
-      }
+      keydown(ev, key);
+      quit = key[KEY_ESCAPE];
     } else if(ev.type == ALLEGRO_EVENT_KEY_UP) {
-      switch(ev.keyboard.keycode) {
-        case ALLEGRO_KEY_S:
-          key[KEY_S] = false;
-          break;
-        case ALLEGRO_KEY_UP:
-          key[KEY_UP] = false;
-          break;
-        case ALLEGRO_KEY_LEFT:
-          key[KEY_LEFT] = false;
-          break;
-        case ALLEGRO_KEY_RIGHT:
-          key[KEY_RIGHT] = false;
-          break;
-        case ALLEGRO_KEY_SPACE:
-          key[KEY_SPACE] = false;
-          ship->fire_debounce = false;
-          break;
-        case ALLEGRO_KEY_LCTRL:
-          key[KEY_LCONTROL] = false;
-          ship->hyper_debounce = false;
-          break;
-        case ALLEGRO_KEY_ESCAPE:
-          quit = true;
-          break;
-      }
+      keyup(ev, key);
+      ship->fire_debounce = key[KEY_SPACE];
+      ship->hyper_debounce = key[KEY_LCONTROL];
     }
 
     if(redraw && al_is_event_queue_empty(asteroids.event_queue)) {
