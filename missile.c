@@ -10,18 +10,23 @@
 #include <allegro5/allegro_image.h>
 
 #include "list.h"
+#include "asteroid.h"
 #include "asteroids.h"
 #include "missile.h"
 
-void
-missile_free(MISSILE *missile)
+bool
+missile_asteroid_collision(MISSILE *m, ASTEROID *a)
 {
-  free(missile->position);
-  free(missile->velocity);
-  al_destroy_bitmap(missile->sprite);
-  free(missile);
+  if(!a)
+    return false;
 
-  missile = NULL;
+  float missile_x = m->position->x - (m->width  / 2);
+  float missile_y = m->position->y - (m->height / 2);
+  float rock_x = a->position->x - (a->width  / 2);
+  float rock_y = a->position->y - (a->height / 2);
+
+  return collision(missile_x, missile_y, m->width, m->height,
+      rock_x, rock_y, a->width, a->height);
 }
 
 void
@@ -49,16 +54,14 @@ missile_draw_list(LIST *missiles)
 }
 
 void
-missile_update(MISSILE *missile, ALLEGRO_TIMER *timer)
+missile_free(MISSILE *missile)
 {
-  if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(timer)) {
-    missile->active = false;
-    return;
-  }
+  free(missile->position);
+  free(missile->velocity);
+  al_destroy_bitmap(missile->sprite);
+  free(missile);
 
-  missile->position->x += missile->velocity->x;
-  missile->position->y += missile->velocity->y;
-  wrap_position(missile->position);
+  missile = NULL;
 }
 
 MISSILE *
@@ -85,4 +88,17 @@ missile_create(void)
   }
 
   return missile;
+}
+
+void
+missile_update(MISSILE *missile, ALLEGRO_TIMER *timer)
+{
+  if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(timer)) {
+    missile->active = false;
+    return;
+  }
+
+  missile->position->x += missile->velocity->x;
+  missile->position->y += missile->velocity->y;
+  wrap_position(missile->position);
 }

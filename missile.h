@@ -2,6 +2,7 @@
 #define asteroids_missile_H
 
 #include "list.h"
+#include "asteroid.h"
 #include "asteroids.h"
 
 #define MISSILE_TTL   1.5
@@ -19,6 +20,7 @@ typedef struct missile_t {
   ALLEGRO_BITMAP *sprite;
 } MISSILE;
 
+bool missile_asteroid_collision(MISSILE *m, ASTEROID *a);
 MISSILE *missile_create(void);
 void missile_free(MISSILE *missile);
 void missile_draw(MISSILE *missile);
