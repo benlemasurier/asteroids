@@ -11,6 +11,7 @@
 #include "util.h"
 #include "missile.h"
 #include "animation.h"
+#include "asteroid.h"
 #include "asteroids.h"
 #include "ship.h"
 
@@ -23,6 +24,18 @@ ship_accelerate(SHIP *ship)
 {
   ship->velocity->x += (float)   sin(deg2rad(ship->angle))  * ACCEL_SCALE;
   ship->velocity->y += (float) -(cos(deg2rad(ship->angle))) * ACCEL_SCALE;
+}
+
+bool
+ship_asteroid_collision(SHIP *s, ASTEROID *a)
+{
+  float ship_x = s->position->x - (s->width  / 2);
+  float ship_y = s->position->y - (s->height / 2);
+  float rock_x = a->position->x - (a->width  / 2);
+  float rock_y = a->position->y - (a->height / 2);
+
+  return collision(ship_x, ship_y, s->width, s->height,
+                   rock_x, rock_y, a->width, a->height);
 }
 
 SHIP *

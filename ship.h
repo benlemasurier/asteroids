@@ -1,9 +1,10 @@
 #ifndef asteroids_ship_H
 #define asteroids_ship_H
 
-#include  "list.h"
+#include "list.h"
 #include "missile.h"
 #include "animation.h"
+#include "asteroid.h"
 #include "asteroids.h"
 
 #define ACCEL_SCALE   0.07
@@ -28,6 +29,7 @@ typedef struct ship_t {
 } SHIP;
 
 void ship_accelerate(SHIP *ship);
+bool ship_asteroid_collision(SHIP *s, ASTEROID *a);
 SHIP *ship_create(void);
 void ship_drag(SHIP *ship);
 void ship_draw(SHIP *ship, bool thrusting);

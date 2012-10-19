@@ -283,18 +283,6 @@ collision(float b1_x, float b1_y, int b1_w, int b1_h,
 }
 
 static bool
-asteroid_ship_collision(SHIP *ship, ASTEROID *asteroid)
-{
-  float ship_x = ship->position->x - (ship->width  / 2);
-  float ship_y = ship->position->y - (ship->height / 2);
-  float rock_x = asteroid->position->x - (asteroid->width  / 2);
-  float rock_y = asteroid->position->y - (asteroid->height / 2);
-
-  return collision(ship_x, ship_y, ship->width, ship->height,
-                   rock_x, rock_y, asteroid->width, asteroid->height);
-}
-
-static bool
 ship_missile_saucer_collision(MISSILE *missile, SAUCER *saucer)
 {
   float missile_x = missile->position->x - (missile->width   / 2);
@@ -369,7 +357,7 @@ check_ship_asteroid_collisions(SHIP *ship, LIST *rocks)
   while(head) {
     ASTEROID *a = (ASTEROID *) head->data;
 
-    if(asteroid_ship_collision(ship, a)) {
+    if(ship_asteroid_collision(ship, a)) {
       score(a->points);
       explode_asteroid(a);
 
@@ -498,7 +486,7 @@ check_saucer_asteroid_collisions(void)
 static void
 next_level(void)
 {
-  asteroids.current_level += 1; /* TODO: levels have a ceiling, what is it? */
+  asteroids.current_level += 1;
   LEVEL *old = asteroids.level;
   asteroids.level = level_create(asteroids.current_level);
   level_free(old);
