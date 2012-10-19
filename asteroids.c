@@ -157,18 +157,6 @@ draw_lives(void)
 }
 
 static void
-draw_asteroids(LIST *rocks)
-{
-  LIST *head = list_first(rocks);
-  while(head != NULL) {
-    ASTEROID *rock = (ASTEROID *) head->data;
-    asteroid_draw(rock);
-
-    head = head->next;
-  }
-}
-
-static void
 explosions_draw(void)
 {
   LIST *head = list_first(asteroids.explosions);
@@ -729,7 +717,7 @@ main(void)
       draw_score();
       draw_lives();
       draw_high_score();
-      draw_asteroids(asteroids.level->asteroids);
+      asteroid_draw_list(asteroids.level->asteroids);
       explosions_draw();
       if(asteroids.level->saucer)
         saucer_draw(asteroids.level->saucer);

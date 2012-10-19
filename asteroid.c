@@ -133,6 +133,18 @@ asteroid_draw(ASTEROID *asteroid)
 }
 
 void
+asteroid_draw_list(LIST *rocks)
+{
+  LIST *head = list_first(rocks);
+  while(head != NULL) {
+    ASTEROID *a = (ASTEROID *) head->data;
+    asteroid_draw(a);
+
+    head = head->next;
+  }
+}
+
+void
 asteroid_free(ASTEROID *asteroid)
 {
   free(asteroid->position);
