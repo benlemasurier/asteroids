@@ -105,17 +105,14 @@ offscreen(VECTOR *position, uint8_t width, uint8_t height)
 }
 
 static void
-draw_score(void)
+draw_gameover(void)
 {
-  char score_s[20];
-  sprintf(score_s, "%02lu", asteroids.score);
-
   al_draw_text(asteroids.large_font,
       al_map_rgb(WHITE),
-      SCORE_X,
-      SCORE_Y,
-      ALLEGRO_ALIGN_RIGHT,
-      score_s);
+      SCREEN_W / 2,
+      SCREEN_H / 3,
+      ALLEGRO_ALIGN_CENTRE,
+      "GAME OVER");
 }
 
 static void
@@ -133,17 +130,6 @@ draw_high_score(void)
 }
 
 static void
-draw_gameover(void)
-{
-  al_draw_text(asteroids.large_font,
-      al_map_rgb(WHITE),
-      SCREEN_W / 2,
-      SCREEN_H / 3,
-      ALLEGRO_ALIGN_CENTRE,
-      "GAME OVER");
-}
-
-static void
 draw_lives(void)
 {
   int width = al_get_bitmap_width(asteroids.lives_sprite);
@@ -154,6 +140,20 @@ draw_lives(void)
         LIVES_X + (width * i),
         LIVES_Y,
         DRAWING_FLAGS);
+}
+
+static void
+draw_score(void)
+{
+  char score_s[20];
+  sprintf(score_s, "%02lu", asteroids.score);
+
+  al_draw_text(asteroids.large_font,
+      al_map_rgb(WHITE),
+      SCORE_X,
+      SCORE_Y,
+      ALLEGRO_ALIGN_RIGHT,
+      score_s);
 }
 
 static void
