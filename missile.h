@@ -1,6 +1,7 @@
 #ifndef asteroids_missile_H
 #define asteroids_missile_H
 
+#include "list.h"
 #include "asteroids.h"
 
 #define MISSILE_TTL   1.5
@@ -21,6 +22,7 @@ typedef struct missile_t {
 MISSILE *missile_create(void);
 void missile_free(MISSILE *missile);
 void missile_draw(MISSILE *missile);
+void missile_draw_list(LIST *missiles);
 void missile_update(MISSILE *missile, ALLEGRO_TIMER *timer);
 
 #endif /* asteroids_missile_H */

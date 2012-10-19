@@ -169,20 +169,6 @@ draw_asteroids(LIST *rocks)
 }
 
 static void
-draw_missiles(LIST *missiles)
-{
-  LIST *head = list_first(missiles);
-  while(head) {
-    MISSILE *m = (MISSILE *) head->data;
-
-    if(m->active)
-      missile_draw(m);
-
-    head = head->next;
-  }
-}
-
-static void
 explosions_draw(void)
 {
   LIST *head = list_first(asteroids.explosions);
@@ -768,7 +754,7 @@ main(void)
 
       if(asteroids.lives > 0) {
         ship_draw(ship, key[KEY_UP]);
-        draw_missiles(ship->missiles);
+        missile_draw_list(ship->missiles);
       } else {
         if(ship->explosion)
           ship_draw(ship, false);

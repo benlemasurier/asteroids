@@ -9,6 +9,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
+#include "list.h"
 #include "asteroids.h"
 #include "missile.h"
 
@@ -31,6 +32,20 @@ missile_draw(MISSILE *missile)
       missile->position->x - (missile->width  / 2),
       missile->position->y - (missile->height / 2),
       DRAWING_FLAGS);
+}
+
+void
+missile_draw_list(LIST *missiles)
+{
+  LIST *head = list_first(missiles);
+  while(head) {
+    MISSILE *m = (MISSILE *) head->data;
+
+    if(m->active)
+      missile_draw(m);
+
+    head = head->next;
+  }
 }
 
 void
