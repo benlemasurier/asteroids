@@ -390,18 +390,6 @@ explode_asteroid(ASTEROID *asteroid)
 }
 
 static void
-asteroids_update(LIST *rocks)
-{
-  LIST *head = list_first(rocks);
-  while(head) {
-    ASTEROID *rock = (ASTEROID *) head->data;
-    asteroid_update(rock);
-
-    head = head->next;
-  }
-}
-
-static void
 missile_explode_asteroid(MISSILE *missile, ASTEROID *asteroid)
 {
   missile->active = false;
@@ -657,7 +645,7 @@ main(void)
 
       /* update positions */
       ship = ship_update(ship, asteroids.timer);
-      asteroids_update(asteroids.level->asteroids);
+      asteroid_draw_list(asteroids.level->asteroids);
       explosions_update();
       level_update(asteroids.level, ship, asteroids.timer);
 

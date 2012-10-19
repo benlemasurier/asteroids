@@ -7,8 +7,9 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
-#include "asteroids.h"
 #include "util.h"
+#include "list.h"
+#include "asteroids.h"
 #include "asteroid.h"
 
 enum {
@@ -129,6 +130,18 @@ asteroid_draw(ASTEROID *asteroid)
       asteroid->position->x - (asteroid->width  / 2),
       asteroid->position->y - (asteroid->height / 2),
       DRAWING_FLAGS);
+}
+
+void
+asteroid_draw_list(LIST *rocks)
+{
+  LIST *head = list_first(rocks);
+  while(head) {
+    ASTEROID *rock = (ASTEROID *) head->data;
+    asteroid_update(rock);
+
+    head = head->next;
+  }
 }
 
 void
