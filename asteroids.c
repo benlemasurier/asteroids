@@ -276,7 +276,7 @@ init(void)
   return true;
 }
 
-static bool
+bool
 collision(float b1_x, float b1_y, int b1_w, int b1_h,
           float b2_x, float b2_y, int b2_w, int b2_h)
 {
@@ -301,18 +301,6 @@ asteroid_ship_collision(SHIP *ship, ASTEROID *asteroid)
   float rock_y = asteroid->position->y - (asteroid->height / 2);
 
   return collision(ship_x, ship_y, ship->width, ship->height,
-                   rock_x, rock_y, asteroid->width, asteroid->height);
-}
-
-static bool
-asteroid_saucer_collision(SAUCER *saucer, ASTEROID *asteroid)
-{
-  float saucer_x = saucer->position->x - (saucer->width  / 2);
-  float saucer_y = saucer->position->y - (saucer->height / 2);
-  float rock_x = asteroid->position->x - (asteroid->width  / 2);
-  float rock_y = asteroid->position->y - (asteroid->height / 2);
-
-  return collision(saucer_x, saucer_y, saucer->width, saucer->height,
                    rock_x, rock_y, asteroid->width, asteroid->height);
 }
 

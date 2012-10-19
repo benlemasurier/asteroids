@@ -31,6 +31,7 @@ typedef struct vector_t {
   float y;
 } VECTOR;
 
+bool collision(float b1_x, float b1_y, int b1_w, int b1_h, float b2_x, float b2_y, int b2_w, int b2_h);
 void wrap_position(VECTOR *position);
 bool offscreen(VECTOR *position, uint8_t width, uint8_t height);
 int64_t seconds_elapsed(int64_t time_count);

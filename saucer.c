@@ -11,6 +11,7 @@
 
 #include "util.h"
 #include "asteroids.h"
+#include "asteroid.h"
 #include "missile.h"
 #include "level.h"
 #include "ship.h"
@@ -53,6 +54,18 @@ random_position(void)
   }
 
   return position;
+}
+
+bool
+asteroid_saucer_collision(SAUCER *s, ASTEROID *a)
+{
+  float saucer_x = s->position->x - (s->width  / 2);
+  float saucer_y = s->position->y - (s->height / 2);
+  float rock_x = a->position->x - (a->width  / 2);
+  float rock_y = a->position->y - (a->height / 2);
+
+  return collision(saucer_x, saucer_y, s->width, s->height,
+                   rock_x, rock_y, a->width, a->height);
 }
 
 void

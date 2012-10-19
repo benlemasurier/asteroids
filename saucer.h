@@ -3,6 +3,7 @@
 
 #include "ship.h"
 #include "missile.h"
+#include "asteroid.h"
 
 #define SAUCER_TTL 10
 
@@ -30,6 +31,7 @@ typedef struct saucer_t {
   ALLEGRO_BITMAP *sprite;
 } SAUCER;
 
+bool asteroid_saucer_collision(SAUCER *s, ASTEROID *a);
 void saucer_draw(SAUCER *saucer);
 bool saucer_init(void);
 void saucer_exit(SAUCER *saucer);
