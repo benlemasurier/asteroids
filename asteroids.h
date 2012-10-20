@@ -11,6 +11,7 @@
 #define FULLSCREEN false
 #define SCREEN_W 1024
 #define SCREEN_H 768
+#define VOLUME 1.0
 
 #define BLACK 0,0,0
 #define WHITE 255,255,255

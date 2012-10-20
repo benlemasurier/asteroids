@@ -711,6 +711,7 @@ main(void)
   ship_shutdown();
   missile_shutdown();
   asteroid_shutdown();
+  explosion_shutdown();
 
   al_uninstall_keyboard();
 

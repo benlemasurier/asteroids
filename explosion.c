@@ -23,7 +23,7 @@ explosion_create(VECTOR *position)
   explosion->position->x = position->x - (explosion->width  / 2);
   explosion->position->y = position->y - (explosion->height / 2);
 
-  al_play_sample(sample, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+  al_play_sample(sample, VOLUME, 0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
 
   return explosion;
 }
@@ -44,4 +44,10 @@ explosion_init(void)
   }
 
   return true;
+}
+
+void
+explosion_shutdown(void)
+{
+  al_destroy_sample(sample);
 }
