@@ -11,6 +11,7 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_acodec.h>
 
+#include "util.h"
 #include "list.h"
 #include "asteroid.h"
 #include "asteroids.h"
@@ -59,12 +60,18 @@ missile_draw_list(LIST *missiles)
 }
 
 void
-missile_fire(MISSILE *missile, ALLEGRO_TIMER *timer)
+missile_fire(MISSILE *missile, VECTOR *position, float angle, ALLEGRO_TIMER *timer)
 {
-  missile->active = true;
+  missile->angle = angle;
   missile->time = al_get_timer_count(timer);
 
+  missile->position->x = position->x;
+  missile->position->y = position->y;
+  missile->velocity->x = (float)   sin(deg2rad(missile->angle))  * MISSILE_SPEED;
+  missile->velocity->y = (float) -(cos(deg2rad(missile->angle))) * MISSILE_SPEED;
   al_play_sample(missile->sample, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+
+  missile->active = true;
 }
 
 void

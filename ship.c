@@ -82,7 +82,7 @@ ship_explode(SHIP *ship)
 
   ANIMATION *explosion = animation_new(explosion_sprites, 60);
 
-  // explosion->slowdown = 10;
+  /* explosion->slowdown = 10; */
   explosion->position->x = ship->position->x - (explosion->width  / 2);
   explosion->position->y = ship->position->y - (explosion->height / 2);
 
@@ -96,6 +96,7 @@ ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
 {
   LIST *head = NULL;
   MISSILE *missile = NULL;
+  VECTOR position;
 
   /* full button press required for each missile */
   if(ship->fire_debounce)
@@ -115,14 +116,10 @@ ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
   if(missile == NULL)
     return;
 
-  missile->angle  = ship->angle;
-  missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
-  missile->velocity->y = (float) -(cos(deg2rad(ship->angle))) * MISSILE_SPEED;
-  missile->position->x = ship->position->x;
-  missile->position->y = ship->position->y;
+  position.x = ship->position->x;
+  position.y = ship->position->y;
 
-  missile_fire(missile, timer);
-
+  missile_fire(missile, &position, ship->angle, timer);
   ship->fire_debounce = true;
 }
 
