@@ -160,10 +160,8 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
   if(missile->active)
     return;
 
-  missile->active = true;
   missile->position->x = saucer->position->x + (saucer->width  / 2);
   missile->position->y = saucer->position->y + (saucer->height / 2);
-  missile->time = al_get_timer_count(timer);
 
   /* calculate the angle to hit the ship
    * my (current) best guess at calculating accuracy offsets
@@ -184,6 +182,8 @@ saucer_fire(SAUCER *saucer, SHIP *ship, ALLEGRO_TIMER *timer)
 
   missile->velocity->x = (float)   sin(deg2rad(missile->angle))  * MISSILE_SPEED;
   missile->velocity->y = (float) -(cos(deg2rad(missile->angle))) * MISSILE_SPEED;
+
+  missile_fire(missile, timer);
 }
 
 void

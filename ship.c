@@ -115,16 +115,15 @@ ship_fire(SHIP *ship, ALLEGRO_TIMER *timer)
   if(missile == NULL)
     return;
 
-  ship->fire_debounce = true;
-
-  missile->active = true;
   missile->angle  = ship->angle;
   missile->velocity->x = (float)   sin(deg2rad(ship->angle))  * MISSILE_SPEED;
   missile->velocity->y = (float) -(cos(deg2rad(ship->angle))) * MISSILE_SPEED;
   missile->position->x = ship->position->x;
   missile->position->y = ship->position->y;
 
-  missile->time = al_get_timer_count(timer);
+  missile_fire(missile, timer);
+
+  ship->fire_debounce = true;
 }
 
 void

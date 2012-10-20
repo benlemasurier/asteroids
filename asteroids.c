@@ -17,6 +17,8 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #include "list.h"
 #include "util.h"
@@ -204,6 +206,20 @@ init(void)
     return false;
   }
 
+  /* sound */
+  if(!al_install_audio()) {
+    fprintf(stderr, "failed to initialize audio system.\n");
+    return false;
+  }
+  if(!al_init_acodec_addon()) {
+    fprintf(stderr, "failed to initialize audio codecs.\n");
+    return false;
+  }
+  if(!al_reserve_samples(10)) {
+    fprintf(stderr, "failed to reserve audio samples.\n");
+    return false;
+  }
+
   /* fonts */
   asteroids.small_font = al_load_ttf_font("data/vectorb.ttf", 12, 0);
   asteroids.large_font = al_load_ttf_font("data/vectorb.ttf", 24, 0);
@@ -217,6 +233,8 @@ init(void)
 
   /* sprite preloading */
   if(!ship_init())
+    return false;
+  if(!missile_init())
     return false;
   if(!saucer_init())
     return false;
@@ -691,6 +709,7 @@ main(void)
 
   al_destroy_bitmap(asteroids.lives_sprite);
   ship_shutdown();
+  missile_shutdown();
   asteroid_shutdown();
 
   al_uninstall_keyboard();

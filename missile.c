@@ -8,11 +8,16 @@
 #include <assert.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 
 #include "list.h"
 #include "asteroid.h"
 #include "asteroids.h"
 #include "missile.h"
+
+static ALLEGRO_BITMAP *sprite;
+static ALLEGRO_SAMPLE *sample;
 
 bool
 missile_asteroid_collision(MISSILE *m, ASTEROID *a)
@@ -54,14 +59,39 @@ missile_draw_list(LIST *missiles)
 }
 
 void
+missile_fire(MISSILE *missile, ALLEGRO_TIMER *timer)
+{
+  missile->active = true;
+  missile->time = al_get_timer_count(timer);
+
+  al_play_sample(missile->sample, 1.0, 0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+}
+
+void
 missile_free(MISSILE *missile)
 {
   free(missile->position);
   free(missile->velocity);
-  al_destroy_bitmap(missile->sprite);
   free(missile);
 
   missile = NULL;
+}
+
+bool
+missile_init(void)
+{
+  /* preload sprite */
+  if(!(sprite = al_load_bitmap("data/sprites/missile/missile.png"))) {
+    fprintf(stderr, "unable to load missile sprite\n");
+    return false;
+  }
+
+  if(!(sample = al_load_sample("data/sounds/missile.wav"))) {
+    fprintf(stderr, "unable to load missile audio sample.\n");
+    return false;
+  }
+
+  return true;
 }
 
 MISSILE *
@@ -71,8 +101,8 @@ missile_create(void)
   missile->position = malloc(sizeof(VECTOR));
   missile->velocity = malloc(sizeof(VECTOR));
 
-  /* FIXME: preload missile sprite */
-  missile->sprite = al_load_bitmap("data/sprites/missile/missile.png");
+  missile->sample = sample;
+  missile->sprite = sprite;
   missile->width  = al_get_bitmap_width(missile->sprite);
   missile->height = al_get_bitmap_height(missile->sprite);
   missile->angle  = 0;
@@ -88,6 +118,13 @@ missile_create(void)
   }
 
   return missile;
+}
+
+void
+missile_shutdown(void)
+{
+  al_destroy_bitmap(sprite);
+  al_destroy_sample(sample);
 }
 
 void
