@@ -137,9 +137,7 @@ ship_free(SHIP *ship)
     head = head->next;
   }
 
-  /* FIXME: free missile list */
-
-  free(ship->missiles);
+  list_free(ship->missiles);
   free(ship->position);
   free(ship->velocity);
   free(ship);

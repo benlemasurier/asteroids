@@ -59,6 +59,17 @@ list_first(LIST *list)
   return list;
 }
 
+void
+list_free(LIST *list)
+{
+  LIST *head = list_first(list);
+  while(head != NULL) {
+    LIST *tmp = head;
+    head = head->next;
+    free(tmp);
+  }
+}
+
 LIST *
 list_last(LIST *list)
 {

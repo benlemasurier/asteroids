@@ -137,6 +137,9 @@ missile_shutdown(void)
 void
 missile_update(MISSILE *missile, ALLEGRO_TIMER *timer)
 {
+  if(!missile->active)
+    return;
+
   if((missile->time + (MISSILE_TTL * FPS)) < al_get_timer_count(timer)) {
     missile->active = false;
     return;
