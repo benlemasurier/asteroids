@@ -322,15 +322,17 @@ explode_asteroid(ASTEROID *asteroid)
 
   level->asteroids = list_remove(level->asteroids, asteroid);
 
+  /* if we're 'splitting' the asteroid, attempt to offset the new
+   * asteroids from the path of seqential missiles */
   if(asteroid->size > ASTEROID_SMALL) {
     ASTEROID *tmp = asteroid_create(asteroid->size - 1);
-    tmp->position->x = asteroid->position->x;
-    tmp->position->y = asteroid->position->y;
+    tmp->position->x = asteroid->position->x + rand_f(-6, 6);
+    tmp->position->y = asteroid->position->y + rand_f(-6, 6);
     level->asteroids = list_append(level->asteroids, tmp);
 
     tmp = asteroid_create(asteroid->size - 1);
-    tmp->position->x = asteroid->position->x;
-    tmp->position->y = asteroid->position->y;
+    tmp->position->x = asteroid->position->x + rand_f(-6, 6);;
+    tmp->position->y = asteroid->position->y + rand_f(-6, 6);;
     level->asteroids = list_append(level->asteroids, tmp);
   }
 
