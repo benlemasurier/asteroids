@@ -93,8 +93,8 @@ asteroid_create(uint8_t size)
   asteroid->angle = rand_f(0.0, 360.0);
   asteroid->position->x = rand_f(1.0, SCREEN_W);
   asteroid->position->y = rand_f(1.0, SCREEN_H);
-  asteroid->velocity->x = (float)   sin(deg2rad(asteroid->angle))  * rand_f(0.1, 1.2);
-  asteroid->velocity->y = (float) -(cos(deg2rad(asteroid->angle))) * rand_f(0.1, 1.2);
+  asteroid->velocity->x = (float)   sin(deg2rad(asteroid->angle))  * rand_f(0.3, 1.5);
+  asteroid->velocity->y = (float) -(cos(deg2rad(asteroid->angle))) * rand_f(0.3, 1.5);
 
   switch(size) {
     case ASTEROID_LARGE:
