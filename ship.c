@@ -283,4 +283,3 @@ ship_update(SHIP *ship, bool keys[], ALLEGRO_TIMER *timer)
 
   return ship;
 }
-

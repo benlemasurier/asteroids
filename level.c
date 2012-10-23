@@ -56,7 +56,7 @@ level_free(LEVEL *level)
     head = head->next;
   }
 
-  /* FIXME: need list_free() */
+  list_free(level->asteroids);
 
   free(level);
 }
