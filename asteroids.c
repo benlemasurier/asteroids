@@ -641,7 +641,6 @@ main(void)
       level_draw(asteroids.level);
       draw_lives();
       draw_high_score();
-      asteroid_draw_list(asteroids.level->asteroids);
       animation_draw_list(asteroids.explosions);
 
       if(asteroids.level->number == 0) {

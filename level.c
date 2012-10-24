@@ -72,6 +72,7 @@ void
 level_draw(LEVEL *level)
 {
   draw_score(level->score);
+  asteroid_draw_list(level->asteroids);
 
   if(level->saucer)
     saucer_draw(level->saucer);
