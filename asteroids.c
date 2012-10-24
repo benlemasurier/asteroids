@@ -604,7 +604,7 @@ main(void)
       /* update objects */
       ship = ship_update(ship, key, asteroids.timer);
       explosions_update();
-      level_update(asteroids.level, ship, key, asteroids.timer);
+      asteroids.level = level_update(asteroids.level, ship, key, asteroids.timer);
 
       /* ship->asteroid collisions. */
       check_ship_asteroid_collisions(ship, asteroids.level->asteroids);

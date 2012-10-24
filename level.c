@@ -111,7 +111,7 @@ level_next(LEVEL *level)
   return level;
 }
 
-void
+LEVEL *
 level_update(LEVEL *level, SHIP *ship, bool keys[], ALLEGRO_TIMER *timer)
 {
   int64_t time_count = al_get_timer_count(timer);
@@ -133,5 +133,5 @@ level_update(LEVEL *level, SHIP *ship, bool keys[], ALLEGRO_TIMER *timer)
 
   asteroid_update_list(level->asteroids);
 
-  return;
+  return level;
 }
