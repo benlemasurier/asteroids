@@ -72,6 +72,9 @@ void
 level_draw(LEVEL *level)
 {
   draw_score(level->score);
+
+  if(level->saucer)
+    saucer_draw(level->saucer);
 }
 
 void

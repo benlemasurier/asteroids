@@ -643,8 +643,6 @@ main(void)
       draw_high_score();
       asteroid_draw_list(asteroids.level->asteroids);
       animation_draw_list(asteroids.explosions);
-      if(asteroids.level->saucer)
-        saucer_draw(asteroids.level->saucer);
 
       if(asteroids.level->number == 0) {
         draw_home();
