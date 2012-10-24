@@ -92,7 +92,7 @@ bool
 level_init(void)
 {
   large_font = al_load_ttf_font("data/vectorb.ttf", 24, 0);
-  
+
   return true;
 }
 
@@ -115,6 +115,8 @@ level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer)
     if(!level->saucer->missile->active)
       saucer_fire(level->saucer, ship, timer);
   }
+
+  asteroid_update_list(level->asteroids);
 
   return;
 }

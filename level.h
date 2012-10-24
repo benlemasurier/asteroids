@@ -11,8 +11,8 @@
 
 typedef struct level_t {
   bool playable;
-  LIST *asteroids;
   SAUCER *saucer;
+  LIST *asteroids;
   uint8_t number;
   int64_t saucer_seen; /* time since saucer was last seen */
   unsigned long int score;
