@@ -22,5 +22,6 @@ LEVEL *level_create(uint8_t level_number, unsigned long int score);
 void level_draw(LEVEL *level);
 void level_free(LEVEL *level);
 bool level_init(void);
+LEVEL *level_next(LEVEL *level);
 void level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer);
 #endif /* asteroids_level_H */

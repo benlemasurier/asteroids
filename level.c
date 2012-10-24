@@ -96,6 +96,17 @@ level_init(void)
   return true;
 }
 
+LEVEL *
+level_next(LEVEL *level)
+{
+  LEVEL *old = level;
+  level = level_create(old->number + 1, old->score);
+  level_free(old);
+  al_rest(2.0);
+
+  return level;
+}
+
 void
 level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer)
 {

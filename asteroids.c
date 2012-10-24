@@ -35,8 +35,6 @@
 static struct asteroids {
   const char *high_score;
 
-  uint8_t current_level;
-
   int lives;
   LEVEL *level;
 
@@ -482,16 +480,6 @@ check_saucer_asteroid_collisions(void)
 }
 
 static void
-next_level(void)
-{
-  asteroids.current_level += 1;
-  LEVEL *old = asteroids.level;
-  asteroids.level = level_create(asteroids.current_level, old->score);
-  level_free(old);
-  al_rest(2.0);
-}
-
-static void
 draw_home(void)
 {
   al_draw_text(asteroids.large_font,
@@ -512,7 +500,7 @@ draw_home(void)
 static void
 start(void)
 {
-  next_level();
+  asteroids.level = level_next(asteroids.level);
 }
 
 static void
@@ -575,7 +563,6 @@ main(void)
   asteroids.display       = NULL;
   asteroids.timer         = NULL;
   asteroids.event_queue   = NULL;
-  asteroids.current_level = 0;
   SHIP *ship;
 
   bool redraw = true;
@@ -591,7 +578,7 @@ main(void)
   if((asteroids.high_score = get_config_value("high_score")) == NULL)
     asteroids.high_score = "0";
 
-  asteroids.level = level_create(asteroids.current_level, 0);
+  asteroids.level = level_create(0, 0);
 
   if(!(ship = ship_create()))
     exit(EXIT_FAILURE);
@@ -605,14 +592,14 @@ main(void)
 
     if(ev.type == ALLEGRO_EVENT_TIMER) {
       /* start game */
-      if(asteroids.current_level == 0 && key[KEY_S]) {
+      if(asteroids.level->number == 0 && key[KEY_S]) {
         start();
         continue;
       }
 
       /* are we out of asteroids to destroy? */
       if(list_length(asteroids.level->asteroids) == 0)
-        next_level();
+        asteroids.level = level_next(asteroids.level);
 
       /* update objects */
       ship = ship_update(ship, key, asteroids.timer);
@@ -659,7 +646,7 @@ main(void)
       if(asteroids.level->saucer)
         saucer_draw(asteroids.level->saucer);
 
-      if(asteroids.current_level == 0) {
+      if(asteroids.level->number == 0) {
         draw_home();
         al_flip_display();
         continue;
