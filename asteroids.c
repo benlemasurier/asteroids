@@ -33,7 +33,6 @@
 #include "configuration.h"
 
 static struct asteroids {
-  unsigned long int score;
   const char *high_score;
 
   uint8_t current_level;
@@ -55,10 +54,10 @@ static struct asteroids {
 static void
 score(int points)
 {
-  asteroids.score += points;
-  if(asteroids.score > (unsigned long) atol(asteroids.high_score)) {
+  asteroids.level->score += points;
+  if(asteroids.level->score > (unsigned long) atol(asteroids.high_score)) {
     char score_s[20];
-    sprintf(score_s, "%02lu", asteroids.score);
+    sprintf(score_s, "%02lu", asteroids.level->score);
 
     set_config_value("high_score", score_s);
   }
@@ -133,20 +132,6 @@ draw_lives(void)
         LIVES_X + (width * i),
         LIVES_Y,
         DRAWING_FLAGS);
-}
-
-static void
-draw_score(void)
-{
-  char score_s[20];
-  sprintf(score_s, "%02lu", asteroids.score);
-
-  al_draw_text(asteroids.large_font,
-      al_map_rgb(WHITE),
-      SCORE_X,
-      SCORE_Y,
-      ALLEGRO_ALIGN_RIGHT,
-      score_s);
 }
 
 static void
@@ -232,6 +217,8 @@ init(void)
   }
 
   /* sprite preloading */
+  if(!level_init())
+    return false;
   if(!ship_init())
     return false;
   if(!missile_init())
@@ -499,7 +486,7 @@ next_level(void)
 {
   asteroids.current_level += 1;
   LEVEL *old = asteroids.level;
-  asteroids.level = level_create(asteroids.current_level);
+  asteroids.level = level_create(asteroids.current_level, old->score);
   level_free(old);
   al_rest(2.0);
 }
@@ -584,7 +571,6 @@ keyup(ALLEGRO_EVENT ev, bool *keys)
 int
 main(void)
 {
-  asteroids.score         = 0;
   asteroids.lives         = START_LIVES;
   asteroids.display       = NULL;
   asteroids.timer         = NULL;
@@ -605,7 +591,7 @@ main(void)
   if((asteroids.high_score = get_config_value("high_score")) == NULL)
     asteroids.high_score = "0";
 
-  asteroids.level = level_create(asteroids.current_level);
+  asteroids.level = level_create(asteroids.current_level, 0);
 
   if(!(ship = ship_create()))
     exit(EXIT_FAILURE);
@@ -666,7 +652,7 @@ main(void)
       redraw = false;
       al_clear_to_color(al_map_rgb(BLACK));
 
-      draw_score();
+      level_draw(asteroids.level);
       draw_lives();
       draw_high_score();
       asteroid_draw_list(asteroids.level->asteroids);

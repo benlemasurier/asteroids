@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 
 #include "asteroid.h"
 #include "asteroids.h"
@@ -8,18 +10,37 @@
 #include "list.h"
 #include "level.h"
 
+ALLEGRO_FONT *large_font;
+
+static void
+draw_score(unsigned long int score)
+{
+  char score_s[20];
+  sprintf(score_s, "%02lu", score);
+
+  al_draw_text(large_font,
+      al_map_rgb(WHITE),
+      SCORE_X,
+      SCORE_Y,
+      ALLEGRO_ALIGN_RIGHT,
+      score_s);
+}
+
 LEVEL *
-level_create(uint8_t level_number)
+level_create(uint8_t level_number, unsigned long int score)
 {
   LEVEL *level = malloc(sizeof(LEVEL));
   level->asteroids    = NULL;
   level->saucer       = NULL;
   level->number       = level_number;
   level->saucer_seen  = 0;
+  level->playable     = true;
+  level->score        = score;
 
   uint8_t n_create;
   switch(level_number) {
     case 0: /* home screen */
+      level->playable = false;
       n_create = 6;
       break;
     case 1:
@@ -48,6 +69,12 @@ level_create(uint8_t level_number)
 }
 
 void
+level_draw(LEVEL *level)
+{
+  draw_score(level->score);
+}
+
+void
 level_free(LEVEL *level)
 {
   LIST *head = list_first(level->asteroids);
@@ -59,6 +86,14 @@ level_free(LEVEL *level)
   list_free(level->asteroids);
 
   free(level);
+}
+
+bool
+level_init(void)
+{
+  large_font = al_load_ttf_font("data/vectorb.ttf", 24, 0);
+  
+  return true;
 }
 
 void
