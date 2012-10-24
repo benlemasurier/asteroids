@@ -368,7 +368,7 @@ check_ship_asteroid_collisions(SHIP *ship, LIST *rocks)
 }
 
 static void
-check_ship_missile_asteroid_collisions(SHIP *ship)
+check_ship_missile_asteroid_collisions(LEVEL *level, SHIP *ship)
 {
   LIST *head = list_first(ship->missiles);
   while(head) {
@@ -379,13 +379,13 @@ check_ship_missile_asteroid_collisions(SHIP *ship)
       continue;
     }
 
-    LIST *rock = list_first(asteroids.level->asteroids);
+    LIST *rock = list_first(level->asteroids);
     while(rock) {
       ASTEROID *a = (ASTEROID *) rock->data;
 
       if(missile_asteroid_collision(m, a)) {
         missile_explode_asteroid(m, a);
-        rock = list_first(asteroids.level->asteroids);
+        rock = list_first(level->asteroids);
         continue;
       }
 
@@ -397,19 +397,19 @@ check_ship_missile_asteroid_collisions(SHIP *ship)
 }
 
 static void
-check_ship_missile_saucer_collisions(SHIP *ship)
+check_ship_missile_saucer_collisions(LEVEL *level, SHIP *ship)
 {
-  if(!asteroids.level->saucer)
+  if(!level->saucer)
     return;
 
   LIST *head = list_first(ship->missiles);
   while(head) {
     MISSILE *m = (MISSILE *) head->data;
 
-    if(ship_missile_saucer_collision(m, asteroids.level->saucer)) {
-      new_explosion(asteroids.level->saucer->position);
-      saucer_free(asteroids.level->saucer);
-      asteroids.level->saucer = NULL;
+    if(ship_missile_saucer_collision(m, level->saucer)) {
+      new_explosion(level->saucer->position);
+      saucer_free(level->saucer);
+      level->saucer = NULL;
       break;
     }
 
@@ -418,34 +418,34 @@ check_ship_missile_saucer_collisions(SHIP *ship)
 }
 
 static void
-check_saucer_missile_ship_collisions(SHIP *ship)
+check_saucer_missile_ship_collisions(LEVEL *level, SHIP *ship)
 {
-  if(!asteroids.level->saucer)
+  if(!level->saucer)
     return;
 
-  if(!asteroids.level->saucer->missile->active)
+  if(!level->saucer->missile->active)
     return;
 
-  MISSILE *m = asteroids.level->saucer->missile;
+  MISSILE *m = level->saucer->missile;
   if(!saucer_missile_ship_collision(m, ship))
     return;
 
-  asteroids.lives--;
+  asteroids.lives--; /* FIXME: global. */
   ship_explode(ship);
-  saucer_exit(asteroids.level->saucer);
+  saucer_exit(level->saucer);
 }
 
 static void
-check_saucer_missile_asteroids_collisions(void)
+check_saucer_missile_asteroids_collisions(LEVEL *level)
 {
-  if(!asteroids.level->saucer)
+  if(!level->saucer)
     return;
 
-  MISSILE *m = asteroids.level->saucer->missile;
+  MISSILE *m = level->saucer->missile;
   if(!m->active)
     return;
 
-  LIST *rocks = list_first(asteroids.level->asteroids);
+  LIST *rocks = list_first(level->asteroids);
   while(rocks) {
     ASTEROID *a = (ASTEROID *) rocks->data;
 
@@ -459,20 +459,20 @@ check_saucer_missile_asteroids_collisions(void)
 }
 
 static void
-check_saucer_asteroid_collisions(void)
+check_saucer_asteroid_collisions(LEVEL *level)
 {
-  if(!asteroids.level->saucer)
+  if(!level->saucer)
     return;
 
-  LIST *head = list_first(asteroids.level->asteroids);
-  while(head && asteroids.level->saucer) {
+  LIST *head = list_first(level->asteroids);
+  while(head && level->saucer) {
     ASTEROID *a = (ASTEROID *) head->data;
 
-    if(saucer_asteroid_collision(asteroids.level->saucer, a)) {
+    if(saucer_asteroid_collision(level->saucer, a)) {
       new_explosion(a->position);
       explode_asteroid(a);
-      saucer_free(asteroids.level->saucer);
-      asteroids.level->saucer = NULL;
+      saucer_free(level->saucer);
+      level->saucer = NULL;
     }
 
     head = head->next;
@@ -610,19 +610,19 @@ main(void)
       check_ship_asteroid_collisions(ship, asteroids.level->asteroids);
 
       /* ship[missile] -> asteroid collisions. */
-      check_ship_missile_asteroid_collisions(ship);
+      check_ship_missile_asteroid_collisions(asteroids.level, ship);
 
       /* ship[missile] -> saucer collisions. */
-      check_ship_missile_saucer_collisions(ship);
+      check_ship_missile_saucer_collisions(asteroids.level, ship);
 
       /* saucer[missile] -> ship collisions. */
-      check_saucer_missile_ship_collisions(ship);
+      check_saucer_missile_ship_collisions(asteroids.level, ship);
 
       /* saucer[missile] -> asteroid collisions. */
-      check_saucer_missile_asteroids_collisions();
+      check_saucer_missile_asteroids_collisions(asteroids.level);
 
       /* saucer->asteroid collisions. */
-      check_saucer_asteroid_collisions();
+      check_saucer_asteroid_collisions(asteroids.level);
 
       redraw = true;
     } else if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
