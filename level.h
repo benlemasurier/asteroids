@@ -23,5 +23,5 @@ void level_draw(LEVEL *level);
 void level_free(LEVEL *level);
 bool level_init(void);
 LEVEL *level_next(LEVEL *level);
-void level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer);
+void level_update(LEVEL *level, SHIP *ship, bool keys[], ALLEGRO_TIMER *timer);
 #endif /* asteroids_level_H */

@@ -108,7 +108,7 @@ level_next(LEVEL *level)
 }
 
 void
-level_update(LEVEL *level, SHIP *ship, ALLEGRO_TIMER *timer)
+level_update(LEVEL *level, SHIP *ship, bool keys[], ALLEGRO_TIMER *timer)
 {
   int64_t time_count = al_get_timer_count(timer);
   uint8_t next_saucer = abs(level->number + (-LEVEL_MAX)) * 1.3;

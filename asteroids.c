@@ -85,10 +85,10 @@ bool
 offscreen(VECTOR *position, uint8_t width, uint8_t height)
 {
   if((position->x - (width / 2)) > SCREEN_W ||
-      (position->x + (width / 2)) < 0)
+     (position->x + (width / 2)) < 0)
     return true;
   if((position->y - (height / 2)) > SCREEN_H ||
-      (position->y + (height / 2)) < 0)
+     (position->y + (height / 2)) < 0)
     return true;
 
   return false;
@@ -604,7 +604,7 @@ main(void)
       /* update objects */
       ship = ship_update(ship, key, asteroids.timer);
       explosions_update();
-      level_update(asteroids.level, ship, asteroids.timer);
+      level_update(asteroids.level, ship, key, asteroids.timer);
 
       /* ship->asteroid collisions. */
       check_ship_asteroid_collisions(ship, asteroids.level->asteroids);
